@@ -187,7 +187,7 @@
                     </div>
 
                     <div class="flex justify-between items-center mb-3">
-                        <p class="text-xs text-slate-500">各提出物に最低10分を確保し、終わらなかった分は自動で明日以降へ繰り越されます。</p>
+                        <p id="mission-range-info" class="text-xs text-slate-500">1ページあたりの目安時間に基づき、時間が自動配分されます。</p>
                         <button onclick="resetDailyMissions()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition font-medium">
                             <i class="fa-solid fa-rotate-right mr-1"></i>チェックをリセット
                         </button>
@@ -897,7 +897,7 @@
                                     <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">30分間の自習・復習</span>
                                 </div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span>目標時間: <strong class="text-indigo-600 text-sm">30分</strong></span>
+                                    <span>目標時間: <strong class="text-indigo-600 text-sm">30分 〜 39分</strong></span>
                                     ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！お疲れ様でした</span>' : ''}
                                 </div>
                             </div>
@@ -905,15 +905,12 @@
                     </div>
                 `;
                 container.innerHTML = html;
+                document.getElementById('mission-range-info').innerText = 'テスト範囲がないため、基本の30分〜39分自習に設定されています。';
                 return;
             }
 
-            // 各提出物に最低10分を保証しつつ配分
-            const minPerExam = 10;
-            const totalExams = exams.length;
-            const guaranteedTotal = totalExams * minPerExam;
-            const remainingBudget = Math.max(0, dailyTotalBudget - guaranteedTotal);
-
+            // --- ページ目安を考慮した賢い時間配分とページ数計算 ---
+            // 各提出物の「1ページ分の時間 (timePerPage)」×「最低1ページ（または残りページ数に応じた妥当なページ数）」をベースに配分
             let totalWeight = 0;
             exams.forEach(exam => {
                 const diffDays = Math.max(1, Math.ceil((new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24)));
@@ -921,9 +918,7 @@
                 totalWeight += (exam.priority || 2) * urgencyMultiplier;
             });
 
-            // タイムなどで入り切らない（後ろに回す）判定用：時間的に余裕がある分だけ今日表示し、あふれた分を自動で明日へ回す（スマートローテーション）
-            // 全体を時間配分した時、各タスクの割当時間を計算
-            exams.forEach((exam, index) => {
+            exams.forEach(exam => {
                 const sub = subjects.find(s => s.id === exam.subjectId) || { name: '不明', color: '#cbd5e1' };
                 const key = `${exam.id}_${todayStr}`;
                 const isCompleted = !!missionCompletions[key];
@@ -931,20 +926,23 @@
                 const diffDays = Math.max(1, Math.ceil((new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24)));
                 let urgencyMultiplier = diffDays <= 7 ? (8 - diffDays) : 1;
                 let examWeight = (exam.priority || 2) * urgencyMultiplier;
-                
-                let extraMins = totalWeight > 0 ? Math.round((examWeight / totalWeight) * remainingBudget) : Math.round(remainingBudget / totalExams);
-                let allocatedMins = minPerExam + extraMins;
-                allocatedMins = Math.round(allocatedMins / 5) * 5;
 
-                // 割当時間から今日行うべきページ数を計算 (目安時間 = 1ページ何分かかるか)
+                // 全体目標時間からウェイトに応じて割り当て
+                let rawAllocatedMins = totalWeight > 0 ? (examWeight / totalWeight) * dailyTotalBudget : (dailyTotalBudget / exams.length);
+                
+                // 1ページあたりの時間（例: 10分など）を取得。最低1ページ分（または設定値）を必ず確保する
                 const timePerPage = exam.timePerPage || 5;
+                const minGuaranteedMins = timePerPage; // 1ページ分の時間は絶対に下回らないようにする
+
+                let allocatedMins = Math.max(minGuaranteedMins, Math.round(rawAllocatedMins));
+
+                // 割り当てられた時間から、今日やるべきページ数を算出（例: 20分なら1ページ10分で2ページ）
                 let targetPages = Math.max(1, Math.round(allocatedMins / timePerPage));
                 if (targetPages > exam.pages) targetPages = exam.pages;
 
-                // もし登録数が多くて今日の目標時間を大幅に超える場合、上位のタスクに絞って残りを明日に回す（容量オーバー時は一部を翌日へ）
-                // ただしユーザーが「8個中6個分しか表示できないときに2ページ目を明日に回す」と言っているので、
-                // タスク数が多い場合は、期限や優先度が低いものを自動で翌日以降に回すローテーション処理を適用できます。
-                // 今回はシンプルに、すべてのタスクを表示しつつ「行うべきページ数」を明確にし、終わらなかった分は自動的に明日へ積み残し計算されるようにします。
+                // 範囲表示用（例: 40分なら「40分 〜 49分」）
+                const minRange = allocatedMins;
+                const maxRange = allocatedMins + 9;
 
                 html += `
                     <div class="p-4 bg-slate-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-slate-200'} rounded-xl flex items-center justify-between transition">
@@ -957,7 +955,7 @@
                                     ${exam.repeating ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">🔄 周回対応</span>' : ''}
                                 </div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span>割当時間: <strong class="text-indigo-600 text-sm">${allocatedMins}分</strong> (最低10分)</span>
+                                    <span>割当時間: <strong class="text-indigo-600 text-sm">${minRange}分 〜 ${maxRange}分</strong> (1P=${timePerPage}分)</span>
                                     <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold border border-indigo-100">📖 今日行うページ数: 約 ${targetPages} ページ</span>
                                     ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！</span>' : ''}
                                 </div>
@@ -968,6 +966,7 @@
             });
 
             container.innerHTML = html;
+            document.getElementById('mission-range-info').innerText = '各提出物の「1ページあたりの目安時間」に合わせ、1ページ以上の時間が自動配分されています。';
         }
 
         function toggleDefaultMission(key) {
