@@ -181,13 +181,13 @@
                         
                         <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl">
                             <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-hourglass-half mr-1"></i>今日の全体目標:</span>
-                            <input type="number" id="daily-total-budget" min="10" step="10" value="90" onchange="updateTotalBudget(this.value)" class="w-16 bg-white border border-indigo-200 rounded-lg px-2 py-1 text-sm font-bold text-center text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <span class="text-xs text-indigo-900 font-medium">分</span>
+                            <input type="number" id="daily-total-budget" min="30" step="10" value="30" onchange="updateTotalBudget(this.value)" class="w-16 bg-white border border-indigo-200 rounded-lg px-2 py-1 text-sm font-bold text-center text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <span id="daily-total-budget-range" class="text-xs font-bold text-indigo-900">〜39分</span>
                         </div>
                     </div>
 
                     <div class="flex justify-between items-center mb-3">
-                        <p id="mission-range-info" class="text-xs text-slate-500">1ページあたりの目安時間に基づき、時間が自動配分されます。</p>
+                        <p id="mission-range-info" class="text-xs text-slate-500">期限が3週間（21日）以内の直近の提出物が表示されます。</p>
                         <button onclick="resetDailyMissions()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition font-medium">
                             <i class="fa-solid fa-rotate-right mr-1"></i>チェックをリセット
                         </button>
@@ -294,8 +294,8 @@
                         <!-- 日付ごとの目標時間設定 -->
                         <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
                             <span class="text-xs font-bold text-slate-600">この日の目標時間:</span>
-                            <input type="number" id="selected-day-budget-input" min="10" step="10" placeholder="90" onchange="saveSelectedDayBudget(this.value)" class="w-16 bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-xs font-bold text-center text-indigo-600 focus:outline-none">
-                            <span class="text-xs text-slate-600">分</span>
+                            <input type="number" id="selected-day-budget-input" min="30" step="10" placeholder="30" onchange="saveSelectedDayBudget(this.value)" class="w-16 bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-xs font-bold text-center text-indigo-600 focus:outline-none">
+                            <span id="selected-day-budget-range" class="text-xs text-slate-600 font-bold">〜39分</span>
                         </div>
                     </div>
 
@@ -408,7 +408,7 @@
         let exams = [];
         let dateSchedules = [];
         let missionCompletions = {};
-        let dailyTotalBudget = 90;
+        let dailyTotalBudget = 30; // 下限を30分に設定
         let dayBudgets = {};
 
         let timerInterval = null;
@@ -478,7 +478,7 @@
                     exams: [],
                     dateSchedules: [],
                     missionCompletions: {},
-                    dailyTotalBudget: 90,
+                    dailyTotalBudget: 30,
                     dayBudgets: {}
                 }
             };
@@ -513,10 +513,11 @@
             exams = userData.exams || [];
             dateSchedules = userData.dateSchedules || [];
             missionCompletions = userData.missionCompletions || {};
-            dailyTotalBudget = userData.dailyTotalBudget !== undefined ? userData.dailyTotalBudget : 90;
+            dailyTotalBudget = userData.dailyTotalBudget !== undefined ? userData.dailyTotalBudget : 30;
             dayBudgets = userData.dayBudgets || {};
 
             document.getElementById('daily-total-budget').value = dailyTotalBudget;
+            updateBudgetRangeDisplay();
 
             updateSubjectSelects();
             filterExamsBySubject();
@@ -849,12 +850,24 @@
             alert('今日のミッションのチェックをリセットしました！');
         }
 
+        function updateBudgetRangeDisplay() {
+            const val = parseInt(document.getElementById('daily-total-budget').value) || 30;
+            const maxVal = val + 9;
+            const text = `〜${maxVal}分`;
+            document.getElementById('daily-total-budget-range').innerText = text;
+            const selRange = document.getElementById('selected-day-budget-range');
+            if (selRange) selRange.innerText = text;
+        }
+
         function updateTotalBudget(val) {
             const parsed = parseInt(val);
-            if (!isNaN(parsed) && parsed > 0) {
+            if (!isNaN(parsed) && parsed >= 30) {
                 dailyTotalBudget = parsed;
+                updateBudgetRangeDisplay();
                 saveCurrentUserData();
                 renderMissions();
+            } else {
+                document.getElementById('daily-total-budget').value = dailyTotalBudget;
             }
         }
 
@@ -863,6 +876,7 @@
             container.innerHTML = '';
 
             const todayStr = new Date().toDateString();
+            const now = new Date();
             const todaysSchedules = dateSchedules.filter(s => s.dateStr === todayStr);
 
             let html = '';
@@ -883,7 +897,14 @@
                 html += `</div></div>`;
             }
 
-            if (exams.length === 0) {
+            // 期限が3週間（21日）以内の提出物だけを抽出
+            const activeExams = exams.filter(exam => {
+                const deadlineDate = new Date(exam.deadline);
+                const diffDays = (deadlineDate - now) / (1000 * 60 * 60 * 24);
+                return diffDays <= 21;
+            });
+
+            if (activeExams.length === 0) {
                 const defaultKey = `default_30min_${todayStr}`;
                 const isCompleted = !!missionCompletions[defaultKey];
 
@@ -897,7 +918,7 @@
                                     <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">30分間の自習・復習</span>
                                 </div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span>目標時間: <strong class="text-indigo-600 text-sm">30分 〜 39分</strong></span>
+                                    <span>目標時間: <strong class="text-indigo-600 text-sm">${dailyTotalBudget}分 〜 ${dailyTotalBudget + 9}分</strong></span>
                                     ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！お疲れ様でした</span>' : ''}
                                 </div>
                             </div>
@@ -905,42 +926,35 @@
                     </div>
                 `;
                 container.innerHTML = html;
-                document.getElementById('mission-range-info').innerText = 'テスト範囲がないため、基本の30分〜39分自習に設定されています。';
+                document.getElementById('mission-range-info').innerText = '期限が3週間以内の直近の提出物はありません（基本の自習を表示中）。';
                 return;
             }
 
-            // --- ページ目安を考慮した賢い時間配分とページ数計算 ---
-            // 各提出物の「1ページ分の時間 (timePerPage)」×「最低1ページ（または残りページ数に応じた妥当なページ数）」をベースに配分
             let totalWeight = 0;
-            exams.forEach(exam => {
-                const diffDays = Math.max(1, Math.ceil((new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24)));
+            activeExams.forEach(exam => {
+                const diffDays = Math.max(1, Math.ceil((new Date(exam.deadline) - now) / (1000 * 60 * 60 * 24)));
                 let urgencyMultiplier = diffDays <= 7 ? (8 - diffDays) : 1;
                 totalWeight += (exam.priority || 2) * urgencyMultiplier;
             });
 
-            exams.forEach(exam => {
+            activeExams.forEach(exam => {
                 const sub = subjects.find(s => s.id === exam.subjectId) || { name: '不明', color: '#cbd5e1' };
                 const key = `${exam.id}_${todayStr}`;
                 const isCompleted = !!missionCompletions[key];
 
-                const diffDays = Math.max(1, Math.ceil((new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24)));
+                const diffDays = Math.max(1, Math.ceil((new Date(exam.deadline) - now) / (1000 * 60 * 60 * 24)));
                 let urgencyMultiplier = diffDays <= 7 ? (8 - diffDays) : 1;
                 let examWeight = (exam.priority || 2) * urgencyMultiplier;
 
-                // 全体目標時間からウェイトに応じて割り当て
-                let rawAllocatedMins = totalWeight > 0 ? (examWeight / totalWeight) * dailyTotalBudget : (dailyTotalBudget / exams.length);
+                let rawAllocatedMins = totalWeight > 0 ? (examWeight / totalWeight) * dailyTotalBudget : (dailyTotalBudget / activeExams.length);
                 
-                // 1ページあたりの時間（例: 10分など）を取得。最低1ページ分（または設定値）を必ず確保する
                 const timePerPage = exam.timePerPage || 5;
-                const minGuaranteedMins = timePerPage; // 1ページ分の時間は絶対に下回らないようにする
+                const minGuaranteedMins = timePerPage;
 
                 let allocatedMins = Math.max(minGuaranteedMins, Math.round(rawAllocatedMins));
-
-                // 割り当てられた時間から、今日やるべきページ数を算出（例: 20分なら1ページ10分で2ページ）
                 let targetPages = Math.max(1, Math.round(allocatedMins / timePerPage));
                 if (targetPages > exam.pages) targetPages = exam.pages;
 
-                // 範囲表示用（例: 40分なら「40分 〜 49分」）
                 const minRange = allocatedMins;
                 const maxRange = allocatedMins + 9;
 
@@ -953,9 +967,10 @@
                                     <span class="text-xs px-2 py-0.5 rounded text-white font-medium" style="background-color: ${sub.color}">${sub.name}</span>
                                     <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">${exam.title}</span>
                                     ${exam.repeating ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">🔄 周回対応</span>' : ''}
+                                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">あと${diffDays}日</span>
                                 </div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span>割当時間: <strong class="text-indigo-600 text-sm">${minRange}分 〜 ${maxRange}分</strong> (1P=${timePerPage}分)</span>
+                                    <span>割当時間: <strong class="text-indigo-600 text-sm">${minRange}分 〜 ${maxRange}分</strong></span>
                                     <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold border border-indigo-100">📖 今日行うページ数: 約 ${targetPages} ページ</span>
                                     ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！</span>' : ''}
                                 </div>
@@ -966,7 +981,7 @@
             });
 
             container.innerHTML = html;
-            document.getElementById('mission-range-info').innerText = '各提出物の「1ページあたりの目安時間」に合わせ、1ページ以上の時間が自動配分されています。';
+            document.getElementById('mission-range-info').innerText = '期限が3週間（21日）以内の直近の提出物が表示されています。';
         }
 
         function toggleDefaultMission(key) {
@@ -1002,17 +1017,22 @@
                 const thisDate = new Date(year, month, day);
                 const dateStr = thisDate.toDateString();
 
+                const activeExams = exams.filter(exam => {
+                    const diffDays = (new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+                    return diffDays <= 21;
+                });
+
                 let hasCompletedMission = false;
-                if (exams.length === 0) {
+                if (activeExams.length === 0) {
                     if (missionCompletions[`default_30min_${dateStr}`]) {
                         hasCompletedMission = true;
                     }
                 } else {
                     let allDone = true;
-                    exams.forEach(exam => {
+                    activeExams.forEach(exam => {
                         if (!missionCompletions[`${exam.id}_${dateStr}`]) allDone = false;
                     });
-                    if (exams.length > 0 && allDone) hasCompletedMission = true;
+                    if (activeExams.length > 0 && allDone) hasCompletedMission = true;
                 }
 
                 const daySchedules = dateSchedules.filter(s => s.dateStr === dateStr);
@@ -1087,6 +1107,7 @@
 
             const dayBudget = dayBudgets[dateStr] !== undefined ? dayBudgets[dateStr] : dailyTotalBudget;
             document.getElementById('selected-day-budget-input').value = dayBudget;
+            updateBudgetRangeDisplay();
 
             renderSelectedDaySchedules(dateStr, isPast);
             renderSelectedDayLogs(dateStr);
@@ -1182,11 +1203,12 @@
 
         function saveSelectedDayBudget(val) {
             const parsed = parseInt(val);
-            if (!isNaN(parsed) && parsed > 0) {
+            if (!isNaN(parsed) && parsed >= 30) {
                 dayBudgets[selectedCalDateStr] = parsed;
                 if (selectedCalDateStr === new Date().toDateString()) {
                     dailyTotalBudget = parsed;
                     document.getElementById('daily-total-budget').value = parsed;
+                    updateBudgetRangeDisplay();
                 }
                 saveCurrentUserData();
                 renderMissions();
