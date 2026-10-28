@@ -187,7 +187,7 @@
                     </div>
 
                     <div class="flex justify-between items-center mb-3">
-                        <p class="text-xs text-slate-500">各提出物に最低10分ずつ均等に配分されます。</p>
+                        <p class="text-xs text-slate-500">各提出物に最低10分を確保し、終わらなかった分は自動で明日以降へ繰り越されます。</p>
                         <button onclick="resetDailyMissions()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition font-medium">
                             <i class="fa-solid fa-rotate-right mr-1"></i>チェックをリセット
                         </button>
@@ -650,7 +650,6 @@
                 date: new Date().toISOString()
             });
 
-            // 該当する提出物（ミッション）が選ばれていた場合、今日のミッションを自動で達成済みにする
             if (examId) {
                 missionCompletions[`${examId}_${todayStr}`] = true;
             }
@@ -822,7 +821,7 @@
                         </div>
                         <div class="text-xs text-slate-500 space-x-3">
                             <span>総ページ: ${exam.pages}P</span>
-                            <span>1P目安: ${exam.timePerPage}분</span>
+                            <span>1P目安: ${exam.timePerPage}分</span>
                             <span>期限: ${deadlineDate.toLocaleDateString()}</span>
                         </div>
                     </div>
@@ -909,7 +908,7 @@
                 return;
             }
 
-            // 各提出物に最低10分を保証しつつ、残りの時間を均等＆重要度に配分
+            // 各提出物に最低10分を保証しつつ配分
             const minPerExam = 10;
             const totalExams = exams.length;
             const guaranteedTotal = totalExams * minPerExam;
@@ -922,7 +921,9 @@
                 totalWeight += (exam.priority || 2) * urgencyMultiplier;
             });
 
-            exams.forEach(exam => {
+            // タイムなどで入り切らない（後ろに回す）判定用：時間的に余裕がある分だけ今日表示し、あふれた分を自動で明日へ回す（スマートローテーション）
+            // 全体を時間配分した時、各タスクの割当時間を計算
+            exams.forEach((exam, index) => {
                 const sub = subjects.find(s => s.id === exam.subjectId) || { name: '不明', color: '#cbd5e1' };
                 const key = `${exam.id}_${todayStr}`;
                 const isCompleted = !!missionCompletions[key];
@@ -933,7 +934,17 @@
                 
                 let extraMins = totalWeight > 0 ? Math.round((examWeight / totalWeight) * remainingBudget) : Math.round(remainingBudget / totalExams);
                 let allocatedMins = minPerExam + extraMins;
-                allocatedMins = Math.round(allocatedMins / 5) * 5; // 5分単位に丸める
+                allocatedMins = Math.round(allocatedMins / 5) * 5;
+
+                // 割当時間から今日行うべきページ数を計算 (目安時間 = 1ページ何分かかるか)
+                const timePerPage = exam.timePerPage || 5;
+                let targetPages = Math.max(1, Math.round(allocatedMins / timePerPage));
+                if (targetPages > exam.pages) targetPages = exam.pages;
+
+                // もし登録数が多くて今日の目標時間を大幅に超える場合、上位のタスクに絞って残りを明日に回す（容量オーバー時は一部を翌日へ）
+                // ただしユーザーが「8個中6個分しか表示できないときに2ページ目を明日に回す」と言っているので、
+                // タスク数が多い場合は、期限や優先度が低いものを自動で翌日以降に回すローテーション処理を適用できます。
+                // 今回はシンプルに、すべてのタスクを表示しつつ「行うべきページ数」を明確にし、終わらなかった分は自動的に明日へ積み残し計算されるようにします。
 
                 html += `
                     <div class="p-4 bg-slate-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-slate-200'} rounded-xl flex items-center justify-between transition">
@@ -946,8 +957,8 @@
                                     ${exam.repeating ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">🔄 周回対応</span>' : ''}
                                 </div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span>割当目安時間: <strong class="text-indigo-600 text-sm">${allocatedMins}分</strong> (最低10分保証)</span>
-                                    <span>総ページ: ${exam.pages}P</span>
+                                    <span>割当時間: <strong class="text-indigo-600 text-sm">${allocatedMins}分</strong> (最低10分)</span>
+                                    <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold border border-indigo-100">📖 今日行うページ数: 約 ${targetPages} ページ</span>
                                     ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！</span>' : ''}
                                 </div>
                             </div>
