@@ -633,7 +633,6 @@
             initChart();
             updateTimerDisplay();
 
-            // --- 1日一番最初のログイン（アクセス）判定 ---
             const todayStr = new Date().toDateString();
             if (lastLoginDate !== todayStr) {
                 showDailySummaryModal();
@@ -658,16 +657,14 @@
         function showDailySummaryModal() {
             const todayStr = new Date().toDateString();
             const d = new Date();
-            document.getElementById('daily-summary-date-title').innerText = `${d.getFullYear()}年 ${d.getMonth()+1}月 ${d.getDate()}日 (${['日','月','火','水','木','金','土'][d.getDay()]}) のまとめ`;
+            document.getElementById('daily-summary-date-title').innerText = `${d.getFullYear()}年 ${d.getMonth()+1}月 ${d.getDate()}日 (${['日','月','火','水','木','金','土'][d.getDay()]} ) のまとめ`;
 
-            // 1. 今日の勉強時間
             const dayLogs = logs.filter(l => new Date(l.date).toDateString() === todayStr);
             const totalSec = dayLogs.reduce((acc, cur) => acc + cur.duration, 0);
             const totalMins = Math.round(totalSec / 60);
             document.getElementById('daily-summary-studied-time').innerText = `${totalMins}分`;
             document.getElementById('daily-summary-target-time').innerText = `${dailyTotalBudget}分 〜 ${dailyTotalBudget+9}分`;
 
-            // 2. テスト2日前＆一週間前警告
             const alertsContainer = document.getElementById('daily-summary-alerts-container');
             alertsContainer.innerHTML = '';
             
@@ -701,12 +698,10 @@
             });
             alertsContainer.innerHTML = alertsHtml;
 
-            // 3. 今日のミッション一覧のコピー生成
             const missionsContainer = document.getElementById('daily-summary-missions-container');
             const todayMissionsHtml = document.getElementById('today-missions-container').innerHTML;
             missionsContainer.innerHTML = todayMissionsHtml;
 
-            // モーダル表示
             document.getElementById('daily-summary-modal').classList.remove('hidden');
         }
 
@@ -1082,16 +1077,35 @@
             }
         }
 
-        function getAlreadyStudiedPages(examId) {
-            let studiedPages = new Set();
+        function getStudiedPagesInfo(examId, startPage, endPage) {
+            let studiedSet = new Set();
             logs.forEach(log => {
                 if (log.examId === examId && log.pageStart !== null && log.pageEnd !== null) {
                     for (let p = log.pageStart; p <= log.pageEnd; p++) {
-                        studiedPages.add(p);
+                        studiedSet.add(p);
                     }
                 }
             });
-            return studiedPages;
+
+            let unstudied = [];
+            let totalRangeSize = (endPage - startPage) + 1;
+            
+            // 何周完了したかを計算
+            let completedLaps = 0;
+            if (totalRangeSize > 0) {
+                let allStudiedCount = 0;
+                for (let p = startPage; p <= endPage; p++) {
+                    if (studiedSet.has(p)) allStudiedCount++;
+                }
+                // 周回モードの場合、過去ログから総学習ページ数を計算して周回数を割り出すことも可能
+            }
+
+            // シンプルかつ強力に、未完了のページリストを構築
+            for (let p = startPage; p <= endPage; p++) {
+                if (!studiedSet.has(p)) unstudied.push(p);
+            }
+
+            return { studiedSet, unstudied };
         }
 
         function renderMissions() {
@@ -1162,37 +1176,61 @@
 
                 let sPage = exam.startPage !== undefined ? exam.startPage : 1;
                 let ePage = exam.endPage !== undefined ? exam.endPage : (exam.pages || 20);
+                let rangeTotalSize = (ePage - sPage) + 1;
 
-                const studiedPages = getAlreadyStudiedPages(exam.id);
-                let unstudiedPages = [];
-                for (let p = sPage; p <= ePage; p++) {
-                    if (!studiedPages.has(p)) unstudiedPages.push(p);
-                }
+                // 過去のログから、このワークが何周終わっているか、かつ今日どこをやればいいかを計算
+                let totalStudiedCount = 0;
+                logs.forEach(log => {
+                    if (log.examId === exam.id && log.pageStart !== null && log.pageEnd !== null) {
+                        // ログに記録されたページ数を積算
+                        let lSize = (log.pageEnd - log.pageStart) + 1;
+                        if (lSize > 0) totalStudiedCount += lSize;
+                    }
+                });
 
-                if (unstudiedPages.length === 0) {
+                // 何周目か (0周目スタートなら完了数 / 全体ページ数)
+                let currentLap = Math.floor(totalStudiedCount / rangeTotalSize);
+
+                // 未完了ページの抽出
+                const { studiedSet, unstudied } = getStudiedPagesInfo(exam.id, sPage, ePage);
+                let targetUnstudied = unstudied;
+
+                if (targetUnstudied.length === 0) {
                     if (exam.repeating) {
-                        for (let p = sPage; p <= ePage; p++) unstudiedPages.push(p);
+                        // 周回ありで1周し終わっている場合、次の周回へ進む
+                        currentLap++;
+                        targetUnstudied = [];
+                        for (let p = sPage; p <= ePage; p++) targetUnstudied.push(p);
                     } else {
-                        return;
+                        return; // 周回なしで完了済みなら表示しない
                     }
                 }
 
+                // ペース計算
                 let pagesToAssign = 1;
                 if (exam.repeating) {
                     let timePerP = exam.timePerPage || 5;
                     let possiblePages = Math.floor(dailyTotalBudget / timePerP);
-                    pagesToAssign = Math.max(1, Math.min(possiblePages, unstudiedPages.length));
+                    pagesToAssign = Math.max(1, Math.min(possiblePages, targetUnstudied.length));
                 } else {
                     if (diffDays <= 7) {
-                        pagesToAssign = Math.ceil(unstudiedPages.length / diffDays);
+                        pagesToAssign = Math.ceil(targetUnstudied.length / diffDays);
                     } else {
                         pagesToAssign = 1;
                     }
                 }
 
-                let todayAssignedPages = unstudiedPages.slice(0, pagesToAssign);
+                let todayAssignedPages = targetUnstudied.slice(0, pagesToAssign);
                 let rangeText = todayAssignedPages.length > 1 ? `p.${todayAssignedPages[0]} 〜 p.${todayAssignedPages[todayAssignedPages.length - 1]}` : `p.${todayAssignedPages[0]}`;
                 let allocatedMins = todayAssignedPages.length * (exam.timePerPage || 5);
+
+                // 期末モード（周回あり）の時、何周目か＋範囲を表示（例: 2周目 ＋ p.13~p.18）
+                let displayRangeText = rangeText;
+                if (exam.repeating && currentLap > 0) {
+                    displayRangeText = `<strong class="text-indigo-700">${currentLap + 1}周目</strong> ＋ ${rangeText}`;
+                } else if (exam.repeating) {
+                    displayRangeText = `<strong class="text-indigo-700">1周目</strong> ＋ ${rangeText}`;
+                }
 
                 html += `
                     <div class="p-4 bg-slate-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-slate-200'} rounded-xl flex items-center justify-between transition">
@@ -1202,11 +1240,11 @@
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="text-xs px-2 py-0.5 rounded text-white font-medium" style="background-color: ${sub.color}">${sub.name}</span>
                                     <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">${exam.title}</span>
-                                    ${exam.repeating ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">🔄 周回あり</span>' : '<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">⏱️ 周回なし</span>'}
+                                    ${exam.repeating ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">🔄 期末モード</span>' : '<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">⏱️ 通常</span>'}
                                     <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">あと${diffDays}日</span>
                                 </div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold border border-indigo-100">📖 今日行う範囲: ${rangeText} (${todayAssignedPages.length}ページ)</span>
+                                    <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg font-bold border border-indigo-100">📖 今日やる範囲: ${displayRangeText} (${todayAssignedPages.length}ページ)</span>
                                     <span>目安時間: <strong class="text-indigo-600 text-sm">${allocatedMins}分</strong></span>
                                     ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！</span>' : ''}
                                 </div>
@@ -1217,7 +1255,7 @@
             });
 
             container.innerHTML = html;
-            document.getElementById('mission-range-info').innerText = '期限が3週間以内の直近の提出物が表示されています。タイマーでページ範囲を登録すると重複が防がれます。';
+            document.getElementById('mission-range-info').innerText = '期限が3週間以内の直近の提出物が表示されています。期末モードでは進み具合に合わせて「○周目 ＋ ページ範囲」が自動で算出されます。';
         }
 
         function toggleDefaultMission(key) {
