@@ -102,7 +102,7 @@
                 <button onclick="switchTab('missions')" id="btn-missions" class="flex-1 min-w-[70px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
                     <i class="fa-solid fa-list-check mr-1"></i>ミッション
                 </button>
-                <button onclick="switchTab('final-marathon')" id="btn-final-marathon" class="flex-1 min-w-[90px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-amber-600 hover:text-amber-700 transition font-bold">
+                <button onclick="switchTab('final-marathon')" id="btn-final-marathon" class="flex-1 min-w-[90px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-amber-600 hover:text-amber-700 transition font-bold hidden">
                     <i class="fa-solid fa-fire-flame-curved mr-1"></i>期末専用
                 </button>
                 <button onclick="switchTab('calendar')" id="btn-calendar" class="flex-1 min-w-[70px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
@@ -191,7 +191,7 @@
                     </div>
 
                     <div class="flex justify-between items-center mb-3">
-                        <p id="mission-range-info" class="text-xs text-slate-500">期末モードのワークがあるため、本日のミッションは「期末専用の作業をすべて行う」になっています。</p>
+                        <p id="mission-range-info" class="text-xs text-slate-500">本日の学習ミッションを確認できます。</p>
                         <button onclick="resetDailyMissions()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition font-medium">
                             <i class="fa-solid fa-rotate-right mr-1"></i>チェックをリセット
                         </button>
@@ -248,7 +248,7 @@
                             </div>
                             <div class="sm:col-span-2 flex justify-end">
                                 <button type="submit" id="submit-exam-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
-                                    <i class="fa-solid fa-plus mr-1"></i>登録する（即座に期末専用へ反映）
+                                    <i class="fa-solid fa-plus mr-1"></i>登録する（期末専用へ反映）
                                 </button>
                             </div>
                         </form>
@@ -258,7 +258,7 @@
                 </div>
             </section>
 
-            <!-- 2.5 期末専用ミッションタブ (個別の未完了ページのみ動的表示) -->
+            <!-- 2.5 期末専用ミッションタブ (期末登録時のみ表示) -->
             <section id="tab-final-marathon" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-200">
                     <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
@@ -716,7 +716,7 @@
             } else {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i>登録する（即座に期末専用へ反映）';
+                btn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i>登録する（期末専用へ反映）';
                 titleInput.placeholder = '例：数学 ワーク';
             }
         }
@@ -1052,7 +1052,7 @@
             renderFinalMarathon();
             checkUrgentTabVisibility();
             renderCalendar();
-            alert('期末ワークを登録し、期末専用ローテーションへ即座に反映しました！');
+            alert('期末ワークを登録しました！期末専用タブが有効になります。');
         }
 
         function deleteExam(id) {
@@ -1090,7 +1090,7 @@
                             <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">期末モード</span>
                         </div>
                         <div class="text-xs text-slate-500 space-x-3">
-                            <span>1P目安: ${exam.timePerPage || 10}分</span>
+                            <span>1P目安: ${exam.timePerPage || 10}분</span>
                             <span>期限: ${deadlineDate.toLocaleDateString()}</span>
                         </div>
                     </div>
@@ -1110,6 +1110,7 @@
         function resetDailyMissions() {
             const todayStr = new Date().toDateString();
             delete missionCompletions[`default_marathon_all_${todayStr}`];
+            delete missionCompletions[`default_free_${todayStr}`];
             saveCurrentUserData();
             renderMissions();
             renderFinalMarathon();
@@ -1124,7 +1125,6 @@
             }
         }
 
-        // ページ番号の配列を「p.25〜p.26」のような飛び地形式に変換する関数
         function formatPageRanges(pages) {
             if (!pages || pages.length === 0) return 'すべて完了';
             let sorted = [...pages].sort((a, b) => a - b);
@@ -1146,21 +1146,26 @@
             return parts.join(', ');
         }
 
-        // --- 期末専用ミッション（個別の未完了ページのみ動的表示） ---
+        // --- 期末専用ミッション（登録有無の自動切り替え対応） ---
         function renderFinalMarathon() {
             const container = document.getElementById('final-marathon-container');
-            if (!container) return;
-            container.innerHTML = '';
+            const marathonBtn = document.getElementById('btn-final-marathon');
+            if (!container || !marathonBtn) return;
 
             const activeExams = exams.filter(exam => {
                 const diffDays = (new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24);
                 return diffDays <= 21;
             });
 
+            // 期末テストが登録されていない場合はタブを非表示にし、タイマー側も通常モードにする
             if (activeExams.length === 0) {
-                container.innerHTML = '<p class="text-sm text-slate-400">期末ワークが登録されていません。下部からワークを登録してください。</p>';
+                marathonBtn.classList.add('hidden');
                 return;
+            } else {
+                marathonBtn.classList.remove('hidden');
             }
+
+            container.innerHTML = '';
 
             const todayStr = new Date().toDateString();
             const targetBudget = dayBudgets[todayStr] !== undefined ? dayBudgets[todayStr] : dailyTotalBudget;
@@ -1294,8 +1299,6 @@
                 const sub = subjects.find(s => s.id === group.subjectId) || { name: '不明', color: '#cbd5e1' };
                 
                 let fullRangeStr = `p.${group.fullStart}〜p.${group.fullEnd}`;
-                
-                // 本日の割当ページのうち、まだやっていない（未完了の）ページだけをフィルタリングして抽出！
                 let remainingAssignedPages = group.assignedPages.filter(p => !group.studiedPagesSet.has(p));
                 let assignedDisplayStr = formatPageRanges(remainingAssignedPages);
 
@@ -1335,10 +1338,21 @@
             container.innerHTML = '';
 
             const todayStr = new Date().toDateString();
-            const now = new Date();
             const todaysSchedules = dateSchedules.filter(s => s.dateStr === todayStr);
-
             const targetBudget = dayBudgets[todayStr] !== undefined ? dayBudgets[todayStr] : dailyTotalBudget;
+
+            const todayLogs = logs.filter(l => new Date(l.date).toDateString() === todayStr);
+            const todayStudiedMinutes = Math.round(todayLogs.reduce((acc, cur) => acc + cur.duration, 0) / 60);
+
+            let diffMinutes = targetBudget - todayStudiedMinutes;
+            let isExceeded = diffMinutes < 0;
+            let excessMinutes = isExceeded ? Math.abs(diffMinutes) : 0;
+            let remainingBudget = isExceeded ? 0 : diffMinutes;
+
+            const activeExams = exams.filter(exam => {
+                const diffDays = (new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+                return diffDays <= 21;
+            });
 
             let html = '';
 
@@ -1358,26 +1372,53 @@
                 html += `</div></div>`;
             }
 
-            const defaultKey = `default_marathon_all_${todayStr}`;
-            const isCompleted = !!missionCompletions[defaultKey];
+            // 期末テストが登録されていない場合は「自由学習 / フリーの目標時間達成」ミッションを表示
+            if (activeExams.length === 0) {
+                const freeKey = `default_free_${todayStr}`;
+                const isFreeCompleted = !!missionCompletions[freeKey] || isExceeded || remainingBudget <= 0;
 
-            html += `
-                <div class="p-4 bg-amber-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-amber-200'} rounded-xl flex items-center justify-between transition">
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleDefaultMission('${defaultKey}')" class="w-5 h-5 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer">
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-xs px-2 py-0.5 rounded bg-amber-600 text-white font-medium">期末モード</span>
-                                <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">期末専用の作業をすべて行う (目標: ${targetBudget}分)</span>
-                            </div>
-                            <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                <span>設定された目標時間の範囲内で期末専用タブのローテーション作業を進めます。</span>
-                                ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！お疲れ様でした</span>' : ''}
+                let statusText = isExceeded ? `目標達成！ 🎉 (+${excessMinutes}分 超過)` : `残りあと ${remainingBudget}分 (目標 ${targetBudget}分)`;
+
+                html += `
+                    <div class="p-4 bg-indigo-50 border ${isFreeCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-indigo-200'} rounded-xl flex items-center justify-between transition">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${isFreeCompleted ? 'checked' : ''} onclick="toggleDefaultMission('${freeKey}')" class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xs px-2 py-0.5 rounded bg-indigo-600 text-white font-medium">フリーモード</span>
+                                    <span class="text-sm font-bold ${isFreeCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">目標時間分しっかり学習する（目標: ${targetBudget}分）</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+                                    <span class="font-bold text-indigo-700">${statusText}</span>
+                                    <span>(学習済み: ${todayStudiedMinutes}分)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                const defaultKey = `default_marathon_all_${todayStr}`;
+                const isCompleted = !!missionCompletions[defaultKey];
+
+                html += `
+                    <div class="p-4 bg-amber-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-amber-200'} rounded-xl flex items-center justify-between transition">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleDefaultMission('${defaultKey}')" class="w-5 h-5 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xs px-2 py-0.5 rounded bg-amber-600 text-white font-medium">期末モード</span>
+                                    <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">期末専用の作業をすべて行う (目標: ${targetBudget}分)</span>
+                                </div>
+                                <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+                                    <span>設定された目標時間の範囲内で期末専用タブのローテーション作業を進めます。</span>
+                                    ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！お疲れ様でした</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             container.innerHTML = html;
         }
 
@@ -1489,7 +1530,7 @@
                 const dayTotalSeconds = dayLogs.reduce((acc, cur) => acc + cur.duration, 0);
                 const dayTotalMins = Math.round(dayTotalSeconds / 60);
 
-                const hasCompletedMission = !!missionCompletions[`default_marathon_all_${dateStr}`];
+                const hasCompletedMission = !!missionCompletions[`default_marathon_all_${dateStr}`] || !!missionCompletions[`default_free_${dateStr}`];
                 const daySchedules = dateSchedules.filter(s => s.dateStr === dateStr);
 
                 const cell = document.createElement('div');
