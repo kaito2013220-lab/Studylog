@@ -24,7 +24,7 @@
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
                 <h2 class="text-xl font-bold text-slate-800">StudyLog へようこそ</h2>
-                <p class="text-xs text-slate-500 mt-1">ユーザー名とパスワードのみでログインできます<br>（個人情報の入力は不要です）</p>
+                <p class="text-xs text-slate-500 mt-1">ユーザー名とパスワードのみでログインできます</p>
             </div>
 
             <div id="auth-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl font-medium"></div>
@@ -96,22 +96,25 @@
         <!-- タブナビゲーション -->
         <nav class="bg-white border-b border-slate-200 shadow-xs sticky top-0 z-10">
             <div class="max-w-4xl mx-auto flex overflow-x-auto">
-                <button onclick="switchTab('timer')" id="btn-timer" class="flex-1 min-w-[80px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition">
+                <button onclick="switchTab('timer')" id="btn-timer" class="flex-1 min-w-[70px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 transition">
                     <i class="fa-solid fa-stopwatch mr-1"></i>タイマー
                 </button>
-                <button onclick="switchTab('missions')" id="btn-missions" class="flex-1 min-w-[80px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+                <button onclick="switchTab('missions')" id="btn-missions" class="flex-1 min-w-[70px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
                     <i class="fa-solid fa-list-check mr-1"></i>ミッション
                 </button>
-                <button onclick="switchTab('calendar')" id="btn-calendar" class="flex-1 min-w-[80px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+                <button onclick="switchTab('final-marathon')" id="btn-final-marathon" class="flex-1 min-w-[90px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-amber-600 hover:text-amber-700 transition font-bold">
+                    <i class="fa-solid fa-fire-flame-curved mr-1"></i>期末専用
+                </button>
+                <button onclick="switchTab('calendar')" id="btn-calendar" class="flex-1 min-w-[70px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
                     <i class="fa-solid fa-calendar-days mr-1"></i>カレンダー
                 </button>
                 <button onclick="switchTab('urgent')" id="btn-urgent" class="flex-1 min-w-[90px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-red-500 hover:text-red-700 transition hidden">
-                    <i class="fa-solid fa-triangle-exclamation mr-1"></i>直前最終チェック
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i>直前チェック
                 </button>
-                <button onclick="switchTab('graphs')" id="btn-graphs" class="flex-1 min-w-[80px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+                <button onclick="switchTab('graphs')" id="btn-graphs" class="flex-1 min-w-[70px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
                     <i class="fa-solid fa-chart-pie mr-1"></i>グラフ
                 </button>
-                <button onclick="switchTab('subjects')" id="btn-subjects" class="flex-1 min-w-[80px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
+                <button onclick="switchTab('subjects')" id="btn-subjects" class="flex-1 min-w-[70px] py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition">
                     <i class="fa-solid fa-book mr-1"></i>教科設定
                 </button>
             </div>
@@ -185,16 +188,10 @@
                         <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
                             <i class="fa-solid fa-bullseye text-indigo-600"></i>今日のミッション
                         </h2>
-                        
-                        <div class="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-xl">
-                            <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-hourglass-half mr-1"></i>今日の全体目標:</span>
-                            <input type="number" id="daily-total-budget" min="30" step="10" value="30" onchange="updateTotalBudget(this.value)" class="w-16 bg-white border border-indigo-200 rounded-lg px-2 py-1 text-sm font-bold text-center text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <span id="daily-total-budget-range" class="text-xs font-bold text-indigo-900">〜39分</span>
-                        </div>
                     </div>
 
                     <div class="flex justify-between items-center mb-3">
-                        <p id="mission-range-info" class="text-xs text-slate-500">期限が3週間以内の直近の提出物が表示されます。進捗に合わせて自動で重複を防ぎます。</p>
+                        <p id="mission-range-info" class="text-xs text-slate-500">期末モードのワークがあるため、本日のミッションは「期末専用の作業をすべて行う」になっています。</p>
                         <button onclick="resetDailyMissions()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition font-medium">
                             <i class="fa-solid fa-rotate-right mr-1"></i>チェックをリセット
                         </button>
@@ -203,48 +200,87 @@
                     <div id="today-missions-container" class="space-y-3"></div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <h2 class="text-lg font-bold mb-4 text-slate-700 flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-indigo-600"></i>テスト範囲・提出物・目標設定
-                    </h2>
-                    
-                    <form id="exam-form" onsubmit="openExamModal(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <!-- テスト範囲・提出物・期末集中モード設定エリア -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+                    <div class="flex justify-between items-center flex-wrap gap-3 bg-amber-50 p-4 rounded-xl border border-amber-200">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">教科</label>
-                            <select id="exam-subject" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required></select>
+                            <h3 class="text-sm font-bold text-amber-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved text-amber-600"></i>期末集中勉強期間の設定
+                            </h3>
+                            <p class="text-xs text-amber-700 mt-0.5">集中期間中は、新規の通常単元テストや課題の登録をロックして期末対策に専念できます。</p>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">テスト / 提出物名</label>
-                            <input type="text" id="exam-title" placeholder="例：数学 ワーク" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="focus-start-date" onchange="saveFocusPeriod()" class="bg-white border border-amber-300 rounded-lg px-2 py-1.5 text-xs font-bold">
+                            <span class="text-xs text-amber-800">〜</span>
+                            <input type="date" id="focus-end-date" onchange="saveFocusPeriod()" class="bg-white border border-amber-300 rounded-lg px-2 py-1.5 text-xs font-bold">
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">開始ページ (p.start)</label>
-                            <input type="number" id="exam-start-page" min="1" value="13" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">終了ページ (p.end)</label>
-                            <input type="number" id="exam-end-page" min="1" value="24" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">テスト・提出期限 (日時)</label>
-                            <input type="datetime-local" id="exam-deadline" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">1ページあたりの目安時間 (分)</label>
-                            <input type="number" id="exam-time-per-page" min="1" value="5" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
-                        </div>
-                        <div class="sm:col-span-2 flex justify-end">
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
-                                <i class="fa-solid fa-plus mr-1"></i>登録する（設定確認ポップアップへ）
-                            </button>
-                        </div>
-                    </form>
+                    </div>
 
-                    <div id="exams-list" class="space-y-3"></div>
+                    <div>
+                        <h2 class="text-lg font-bold mb-4 text-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-600"></i>テスト範囲・期末ワーク登録
+                        </h2>
+                        
+                        <form id="exam-form" onsubmit="openExamModal(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">教科</label>
+                                <select id="exam-subject" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">テスト / ワーク名</label>
+                                <input type="text" id="exam-title" placeholder="例：数学 ワーク" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">開始ページ (p.start)</label>
+                                <input type="number" id="exam-start-page" min="1" value="1" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">終了ページ (p.end)</label>
+                                <input type="number" id="exam-end-page" min="1" value="30" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">テスト・提出期限 (日時)</label>
+                                <input type="datetime-local" id="exam-deadline" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">1ページあたりの目安時間 (分)</label>
+                                <input type="number" id="exam-time-per-page" min="1" value="10" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm" required>
+                            </div>
+                            <div class="sm:col-span-2 flex justify-end">
+                                <button type="submit" id="submit-exam-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">
+                                    <i class="fa-solid fa-plus mr-1"></i>登録する（即座に期末専用へ反映）
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="exams-list" class="space-y-3"></div>
+                    </div>
                 </div>
             </section>
 
-            <!-- デイリーまとめポップアップ（1日初回のみ表示） -->
+            <!-- 2.5 期末専用ミッションタブ (個別の未完了ページのみ動的表示) -->
+            <section id="tab-final-marathon" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-amber-200">
+                    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-fire-flame-curved"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800">期末専用ミッション（一括ローテーション）</h2>
+                                <p class="text-xs text-slate-500">デイリータブで決めた目標時間の範囲内で割り当て。やった範囲は個別に消えて残りが表示されます。</p>
+                            </div>
+                        </div>
+                        <button onclick="resetMarathonProgress()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition font-medium">
+                            <i class="fa-solid fa-rotate-right mr-1"></i>ローテーション位置リセット
+                        </button>
+                    </div>
+
+                    <div id="final-marathon-container" class="space-y-4"></div>
+                </div>
+            </section>
+
+            <!-- デイリーまとめポップアップ（1日初回のみ / 目標時間設定） -->
             <div id="daily-summary-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
                 <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 sm:p-8 w-full max-w-lg space-y-5 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
                     <div class="text-center pb-3 border-b border-slate-100">
@@ -252,25 +288,21 @@
                             <i class="fa-solid fa-sun text-amber-500"></i>
                         </div>
                         <h3 id="daily-summary-date-title" class="text-lg font-bold text-slate-800">今日も一日ファイト！ (本日のまとめ)</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">本日最初のご訪問です。本日の状況とミッションを確認しましょう。</p>
+                        <p class="text-xs text-slate-500 mt-0.5">本日最初のご訪問です。本日の目標時間を設定しましょう。</p>
                     </div>
 
-                    <!-- ① 今日の勉強時間＆目標 -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                        <div>
-                            <span class="text-xs font-bold text-slate-500 block mb-0.5">本日の学習時間 / 全体目標</span>
-                            <span id="daily-summary-studied-time" class="text-lg font-extrabold text-indigo-600">0分</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-slate-500 block mb-0.5">今日の目標予算</span>
-                            <span id="daily-summary-target-time" class="text-sm font-bold text-slate-800">30分 〜 39分</span>
+                    <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200 space-y-2">
+                        <label class="block text-xs font-bold text-indigo-900">
+                            <i class="fa-solid fa-hourglass-half mr-1"></i> 本日の全体目標時間（一度決めると今日は変更できません）
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="daily-popup-budget-input" min="10" step="10" value="180" class="w-full bg-white border border-indigo-300 rounded-xl px-4 py-2.5 text-base font-bold text-indigo-600 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <span class="text-sm font-bold text-indigo-900">分</span>
                         </div>
                     </div>
 
-                    <!-- ② テスト2日前＆一週間前警告 -->
                     <div id="daily-summary-alerts-container" class="space-y-2"></div>
 
-                    <!-- ③ 今日のミッション一覧 -->
                     <div>
                         <h4 class="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
                             <i class="fa-solid fa-bullseye text-indigo-600"></i>本日のミッション一覧
@@ -279,8 +311,8 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="button" onclick="closeDailySummaryModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-sm font-bold transition shadow-sm flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-check"></i> 学習をはじめる！
+                        <button type="button" onclick="confirmDailyBudgetAndClose()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-sm font-bold transition shadow-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> この目標で学習をはじめる！
                         </button>
                     </div>
                 </div>
@@ -302,7 +334,7 @@
                             <input type="radio" name="modal-repeating" value="true" checked class="mt-0.5 w-4 h-4 text-indigo-600 focus:ring-indigo-500">
                             <div>
                                 <span class="text-xs font-bold text-indigo-900 block mb-0.5">🔄 周回あり（期末テストモード）</span>
-                                <span class="text-[11px] text-slate-600 block">1周終わっても期限まで何度でも繰り返し今日のミッションに登場させます。（全体目標時間内で進められる分だけ進みます）</span>
+                                <span class="text-[11px] text-slate-600 block">1周終わっても期限まで何度でも繰り返しローテーションします。</span>
                             </div>
                         </label>
 
@@ -310,7 +342,7 @@
                             <input type="radio" name="modal-repeating" value="false" class="mt-0.5 w-4 h-4 text-indigo-600 focus:ring-indigo-500">
                             <div>
                                 <span class="text-xs font-bold text-indigo-900 block mb-0.5">⏱️ 周回なし（通常ペース管理）</span>
-                                <span class="text-[11px] text-slate-600 block">2週間前なら1日1ページ、1週間前になって間に合わないと判断した場合に自動でペースアップします。</span>
+                                <span class="text-[11px] text-slate-600 block">期限から逆算してペース調整します。</span>
                             </div>
                         </label>
                     </div>
@@ -329,7 +361,6 @@
             <!-- 3. カレンダータブ -->
             <section id="tab-calendar" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <!-- カレンダーヘッダー -->
                     <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
                         <div class="flex items-center gap-3">
                             <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
@@ -346,7 +377,6 @@
                         </div>
                     </div>
 
-                    <!-- 曜日ヘッダー -->
                     <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-500 mb-2">
                         <div class="text-red-500">日</div>
                         <div>月</div>
@@ -357,11 +387,9 @@
                         <div class="text-blue-500">土</div>
                     </div>
 
-                    <!-- カレンダーグリッド -->
                     <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 sm:gap-2"></div>
                 </div>
 
-                <!-- 選択日の詳細パネル -->
                 <div id="selected-day-panel" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
                     <div class="flex justify-between items-center flex-wrap gap-2 border-b border-slate-100 pb-3">
                         <h3 class="text-md font-bold text-slate-800 flex items-center gap-2">
@@ -371,8 +399,8 @@
 
                         <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
                             <span class="text-xs font-bold text-slate-600">この日の目標時間:</span>
-                            <input type="number" id="selected-day-budget-input" min="30" step="10" placeholder="30" onchange="saveSelectedDayBudget(this.value)" class="w-16 bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-xs font-bold text-center text-indigo-600 focus:outline-none">
-                            <span id="selected-day-budget-range" class="text-xs text-slate-600 font-bold">〜39分</span>
+                            <input type="number" id="selected-day-budget-input" min="10" step="10" placeholder="180" onchange="saveSelectedDayBudget(this.value)" class="w-16 bg-white border border-slate-300 rounded-lg px-2 py-0.5 text-xs font-bold text-center text-indigo-600 focus:outline-none">
+                            <span class="text-xs text-slate-600 font-bold">分</span>
                         </div>
                     </div>
 
@@ -494,8 +522,9 @@
         let exams = [];
         let dateSchedules = [];
         let missionCompletions = {};
-        let dailyTotalBudget = 30;
+        let dailyTotalBudget = 180;
         let dayBudgets = {};
+        let focusPeriod = { start: '', end: '' };
 
         let timerInterval = null;
         let secondsElapsed = 0;
@@ -564,8 +593,9 @@
                     exams: [],
                     dateSchedules: [],
                     missionCompletions: {},
-                    dailyTotalBudget: 30,
+                    dailyTotalBudget: 180,
                     dayBudgets: {},
+                    focusPeriod: { start: '', end: '' },
                     lastLoginDate: ''
                 }
             };
@@ -602,7 +632,7 @@
             
             exams = (userData.exams || []).map(ex => {
                 let sPage = ex.startPage !== undefined ? ex.startPage : 1;
-                let ePage = ex.endPage !== undefined ? ex.endPage : (ex.pages || 20);
+                let ePage = ex.endPage !== undefined ? ex.endPage : (ex.pages || 30);
                 let totalP = Math.max(1, (ePage - sPage) + 1);
                 return {
                     ...ex,
@@ -614,12 +644,13 @@
 
             dateSchedules = userData.dateSchedules || [];
             missionCompletions = userData.missionCompletions || {};
-            dailyTotalBudget = userData.dailyTotalBudget !== undefined ? userData.dailyTotalBudget : 30;
+            dailyTotalBudget = userData.dailyTotalBudget !== undefined ? userData.dailyTotalBudget : 180;
             dayBudgets = userData.dayBudgets || {};
+            focusPeriod = userData.focusPeriod || { start: '', end: '' };
             lastLoginDate = userData.lastLoginDate || '';
 
-            document.getElementById('daily-total-budget').value = dailyTotalBudget;
-            updateBudgetRangeDisplay();
+            if (focusPeriod.start) document.getElementById('focus-start-date').value = focusPeriod.start;
+            if (focusPeriod.end) document.getElementById('focus-end-date').value = focusPeriod.end;
 
             updateSubjectSelects();
             filterExamsBySubject();
@@ -627,6 +658,8 @@
             renderRecentLogs();
             renderExamsList();
             renderMissions();
+            renderFinalMarathon();
+            checkFocusLockStatus();
             checkUrgentTabVisibility();
             renderCalendar();
             selectCalendarDate(new Date().toDateString());
@@ -649,21 +682,51 @@
                 missionCompletions: missionCompletions,
                 dailyTotalBudget: dailyTotalBudget,
                 dayBudgets: dayBudgets,
+                focusPeriod: focusPeriod,
                 lastLoginDate: lastLoginDate
             };
             localStorage.setItem('studylog_users', JSON.stringify(users));
         }
 
+        function saveFocusPeriod() {
+            const start = document.getElementById('focus-start-date').value;
+            const end = document.getElementById('focus-end-date').value;
+            focusPeriod = { start, end };
+            saveCurrentUserData();
+            checkFocusLockStatus();
+            alert('期末集中勉強期間を保存しました！');
+        }
+
+        function checkFocusLockStatus() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            let isLocked = false;
+            if (focusPeriod.start && focusPeriod.end) {
+                if (todayStr >= focusPeriod.start && todayStr <= focusPeriod.end) {
+                    isLocked = true;
+                }
+            }
+
+            const btn = document.getElementById('submit-exam-btn');
+            const titleInput = document.getElementById('exam-title');
+            if (isLocked) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = '<i class="fa-solid fa-lock mr-1"></i>期末集中期間中のため新規登録ロック中';
+                titleInput.placeholder = '期末集中期間中は通常テストの登録ができません';
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = '<i class="fa-solid fa-plus mr-1"></i>登録する（即座に期末専用へ反映）';
+                titleInput.placeholder = '例：数学 ワーク';
+            }
+        }
+
         function showDailySummaryModal() {
             const todayStr = new Date().toDateString();
             const d = new Date();
-            document.getElementById('daily-summary-date-title').innerText = `${d.getFullYear()}年 ${d.getMonth()+1}月 ${d.getDate()}日 (${['日','月','火','水','木','金','土'][d.getDay()]} ) のまとめ`;
+            document.getElementById('daily-summary-date-title').innerText = `${d.getFullYear()}年 ${d.getMonth()+1}月 ${d.getDate()}日 (${['日','月','火','水','木','金','土'][d.getDay()]}) のまとめ`;
 
-            const dayLogs = logs.filter(l => new Date(l.date).toDateString() === todayStr);
-            const totalSec = dayLogs.reduce((acc, cur) => acc + cur.duration, 0);
-            const totalMins = Math.round(totalSec / 60);
-            document.getElementById('daily-summary-studied-time').innerText = `${totalMins}分`;
-            document.getElementById('daily-summary-target-time').innerText = `${dailyTotalBudget}分 〜 ${dailyTotalBudget+9}分`;
+            document.getElementById('daily-popup-budget-input').value = dailyTotalBudget;
 
             const alertsContainer = document.getElementById('daily-summary-alerts-container');
             alertsContainer.innerHTML = '';
@@ -684,16 +747,6 @@
                             <span class="text-red-600 font-bold">直前チェック要確認</span>
                         </div>
                     `;
-                } else if (diffDays <= 7 && diffDays > 2) {
-                    alertsHtml += `
-                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded text-white font-bold" style="background-color: ${sub.color}">${sub.name}</span>
-                                <span class="font-bold text-amber-800">⚠️ 【1週間前注意】 ${exam.title}</span>
-                            </div>
-                            <span class="text-amber-700 font-bold">残り${diffDays}日</span>
-                        </div>
-                    `;
                 }
             });
             alertsContainer.innerHTML = alertsHtml;
@@ -705,11 +758,20 @@
             document.getElementById('daily-summary-modal').classList.remove('hidden');
         }
 
-        function closeDailySummaryModal() {
-            const todayStr = new Date().toDateString();
-            lastLoginDate = todayStr;
-            saveCurrentUserData();
-            document.getElementById('daily-summary-modal').classList.add('hidden');
+        function confirmDailyBudgetAndClose() {
+            const inputVal = parseInt(document.getElementById('daily-popup-budget-input').value);
+            if (!isNaN(inputVal) && inputVal >= 10) {
+                dailyTotalBudget = inputVal;
+                const todayStr = new Date().toDateString();
+                dayBudgets[todayStr] = dailyTotalBudget;
+                lastLoginDate = todayStr;
+                saveCurrentUserData();
+                renderMissions();
+                renderFinalMarathon();
+                document.getElementById('daily-summary-modal').classList.add('hidden');
+            } else {
+                alert('正しい分数を入力してください（10分以上）。');
+            }
         }
 
         function exportAllData() {
@@ -744,12 +806,12 @@
         }
 
         function switchTab(tabId) {
-            ['timer', 'missions', 'calendar', 'urgent', 'graphs', 'subjects'].forEach(t => {
+            ['timer', 'missions', 'final-marathon', 'calendar', 'urgent', 'graphs', 'subjects'].forEach(t => {
                 const el = document.getElementById('tab-' + t);
                 const btn = document.getElementById('btn-' + t);
                 if (el) el.classList.add('hidden');
                 if (btn) {
-                    btn.classList.remove('border-indigo-600', 'text-indigo-600', 'border-red-500', 'text-red-500');
+                    btn.classList.remove('border-indigo-600', 'text-indigo-600', 'border-red-500', 'text-red-500', 'border-amber-500', 'text-amber-600');
                     btn.classList.add('border-transparent', 'text-slate-500');
                 }
             });
@@ -761,6 +823,9 @@
                 if (tabId === 'urgent') {
                     targetBtn.classList.add('border-red-500', 'text-red-500');
                     renderUrgentTabContent();
+                } else if (tabId === 'final-marathon') {
+                    targetBtn.classList.add('border-amber-500', 'text-amber-600');
+                    renderFinalMarathon();
                 } else {
                     targetBtn.classList.add('border-indigo-600', 'text-indigo-600');
                 }
@@ -820,8 +885,6 @@
                 detail = `【やった範囲】p.${pStart} 〜 p.${pEnd}\n` + detail;
             }
 
-            const todayStr = new Date().toDateString();
-
             logs.unshift({
                 id: Date.now().toString(),
                 subjectId: subjectId,
@@ -834,10 +897,6 @@
                 date: new Date().toISOString()
             });
 
-            if (examId) {
-                missionCompletions[`${examId}_${todayStr}`] = true;
-            }
-
             saveCurrentUserData();
             resetTimer();
             document.getElementById('timer-memo-detail').value = '';
@@ -846,9 +905,10 @@
             document.getElementById('timer-exam').value = '';
             renderRecentLogs();
             renderMissions();
+            renderFinalMarathon();
             renderCalendar();
             selectCalendarDate(selectedCalDateStr);
-            alert('学習記録を保存しました！対応するミッションも達成になりました！');
+            alert('学習記録を保存しました！今日の目標時間から時間が消化されました。');
         }
 
         function updateSubjectSelects() {
@@ -952,6 +1012,11 @@
         // --- ミッション・テスト範囲（ポップアップ連動） ---
         function openExamModal(e) {
             e.preventDefault();
+            const todayStr = new Date().toISOString().slice(0, 10);
+            if (focusPeriod.start && focusPeriod.end && todayStr >= focusPeriod.start && todayStr <= focusPeriod.end) {
+                alert('期末集中勉強期間中のため、新しい通常単元テストや課題の登録はロックされています。');
+                return;
+            }
             document.getElementById('exam-modal').classList.remove('hidden');
         }
 
@@ -961,7 +1026,7 @@
 
         function confirmSaveExam() {
             const startPage = parseInt(document.getElementById('exam-start-page').value) || 1;
-            const endPage = parseInt(document.getElementById('exam-end-page').value) || 20;
+            const endPage = parseInt(document.getElementById('exam-end-page').value) || 30;
             const pages = Math.max(1, (endPage - startPage) + 1);
 
             const repeatingVal = document.querySelector('input[name="modal-repeating"]:checked').value === 'true';
@@ -974,7 +1039,7 @@
                 endPage: endPage,
                 pages: pages,
                 deadline: document.getElementById('exam-deadline').value,
-                timePerPage: parseInt(document.getElementById('exam-time-per-page').value) || 5,
+                timePerPage: parseInt(document.getElementById('exam-time-per-page').value) || 10,
                 repeating: repeatingVal
             });
 
@@ -984,9 +1049,10 @@
 
             renderExamsList();
             renderMissions();
+            renderFinalMarathon();
             checkUrgentTabVisibility();
             renderCalendar();
-            alert('テスト・提出物を登録しました！');
+            alert('期末ワークを登録し、期末専用ローテーションへ即座に反映しました！');
         }
 
         function deleteExam(id) {
@@ -994,6 +1060,7 @@
             saveCurrentUserData();
             renderExamsList();
             renderMissions();
+            renderFinalMarathon();
             checkUrgentTabVisibility();
             renderCalendar();
         }
@@ -1001,7 +1068,7 @@
         function renderExamsList() {
             const container = document.getElementById('exams-list');
             container.innerHTML = '';
-            if (exams.length === 0) { container.innerHTML = '<p class="text-sm text-slate-400">登録されているテスト範囲や提出物はありません。</p>'; return; }
+            if (exams.length === 0) { container.innerHTML = '<p class="text-sm text-slate-400">登録されている期末ワークはありません。</p>'; return; }
 
             exams.forEach(exam => {
                 const sub = subjects.find(s => s.id === exam.subjectId) || { name: '不明', color: '#cbd5e1' };
@@ -1009,11 +1076,8 @@
                 const diffDays = Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24));
                 
                 let sPage = exam.startPage !== undefined ? exam.startPage : 1;
-                let ePage = exam.endPage !== undefined ? exam.endPage : (exam.pages || 20);
+                let ePage = exam.endPage !== undefined ? exam.endPage : 30;
                 let totalP = Math.max(1, (ePage - sPage) + 1);
-
-                let warningBadge = diffDays <= 2 && diffDays >= 0 ? `<span class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">🔥 2日前！</span>` : (diffDays <= 7 && diffDays > 2 ? `<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">⚠️ 1週間前 (${diffDays}日)</span>` : '');
-                let modeBadge = exam.repeating ? `<span class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">🔄 周回あり</span>` : `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">⏱️ 周回なし</span>`;
 
                 const div = document.createElement('div');
                 div.className = 'p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3';
@@ -1022,13 +1086,11 @@
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
                             <span class="text-xs px-2 py-0.5 rounded text-white font-medium" style="background-color: ${sub.color}">${sub.name}</span>
                             <span class="font-bold text-slate-800 text-sm">${exam.title}</span>
-                            <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">p.${sPage}〜p.${ePage}</span>
-                            ${warningBadge}
-                            ${modeBadge}
+                            <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">p.${sPage}〜p.${ePage} (${totalP}P)</span>
+                            <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">期末モード</span>
                         </div>
                         <div class="text-xs text-slate-500 space-x-3">
-                            <span>総ページ: ${totalP}P</span>
-                            <span>1P目安: ${exam.timePerPage || 5}分</span>
+                            <span>1P目安: ${exam.timePerPage || 10}分</span>
                             <span>期限: ${deadlineDate.toLocaleDateString()}</span>
                         </div>
                     </div>
@@ -1038,9 +1100,7 @@
             });
         }
 
-        function toggleMissionCompletion(examId) {
-            const todayStr = new Date().toDateString();
-            const key = `${examId}_${todayStr}`;
+        function toggleDefaultMission(key) {
             missionCompletions[key] = !missionCompletions[key];
             saveCurrentUserData();
             renderMissions();
@@ -1049,72 +1109,236 @@
 
         function resetDailyMissions() {
             const todayStr = new Date().toDateString();
-            exams.forEach(exam => { delete missionCompletions[`${exam.id}_${todayStr}`]; });
+            delete missionCompletions[`default_marathon_all_${todayStr}`];
             saveCurrentUserData();
             renderMissions();
+            renderFinalMarathon();
             renderCalendar();
             alert('今日のミッションのチェックをリセットしました！');
         }
 
-        function updateBudgetRangeDisplay() {
-            const val = parseInt(document.getElementById('daily-total-budget').value) || 30;
-            const maxVal = val + 9;
-            const text = `〜${maxVal}分`;
-            document.getElementById('daily-total-budget-range').innerText = text;
-            const selRange = document.getElementById('selected-day-budget-range');
-            if (selRange) selRange.innerText = text;
-        }
-
-        function updateTotalBudget(val) {
-            const parsed = parseInt(val);
-            if (!isNaN(parsed) && parsed >= 30) {
-                dailyTotalBudget = parsed;
-                updateBudgetRangeDisplay();
-                saveCurrentUserData();
-                renderMissions();
-            } else {
-                document.getElementById('daily-total-budget').value = dailyTotalBudget;
+        function resetMarathonProgress() {
+            if (confirm('期末専用ローテーションの進捗位置をリセットしますか？')) {
+                alert('位置をリセットしました！');
+                renderFinalMarathon();
             }
         }
 
-        function getStudiedPagesInfo(examId, startPage, endPage) {
-            let studiedSet = new Set();
-            logs.forEach(log => {
-                if (log.examId === examId && log.pageStart !== null && log.pageEnd !== null) {
-                    for (let p = log.pageStart; p <= log.pageEnd; p++) {
-                        studiedSet.add(p);
+        // ページ番号の配列を「p.25〜p.26」のような飛び地形式に変換する関数
+        function formatPageRanges(pages) {
+            if (!pages || pages.length === 0) return 'すべて完了';
+            let sorted = [...pages].sort((a, b) => a - b);
+            
+            let parts = [];
+            let start = sorted[0];
+            let prev = sorted[0];
+
+            for (let i = 1; i < sorted.length; i++) {
+                if (sorted[i] === prev + 1) {
+                    prev = sorted[i];
+                } else {
+                    parts.push(start === prev ? `p.${start}` : `p.${start}〜p.${prev}`);
+                    start = sorted[i];
+                    prev = sorted[i];
+                }
+            }
+            parts.push(start === prev ? `p.${start}` : `p.${start}〜p.${prev}`);
+            return parts.join(', ');
+        }
+
+        // --- 期末専用ミッション（個別の未完了ページのみ動的表示） ---
+        function renderFinalMarathon() {
+            const container = document.getElementById('final-marathon-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const activeExams = exams.filter(exam => {
+                const diffDays = (new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+                return diffDays <= 21;
+            });
+
+            if (activeExams.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-400">期末ワークが登録されていません。下部からワークを登録してください。</p>';
+                return;
+            }
+
+            const todayStr = new Date().toDateString();
+            const targetBudget = dayBudgets[todayStr] !== undefined ? dayBudgets[todayStr] : dailyTotalBudget;
+
+            const todayLogs = logs.filter(l => new Date(l.date).toDateString() === todayStr);
+            const todayStudiedMinutes = Math.round(todayLogs.reduce((acc, cur) => acc + cur.duration, 0) / 60);
+
+            let diffMinutes = targetBudget - todayStudiedMinutes;
+            let isExceeded = diffMinutes < 0;
+            let excessMinutes = isExceeded ? Math.abs(diffMinutes) : 0;
+            let remainingBudget = isExceeded ? 0 : diffMinutes;
+
+            let examPageQueues = [];
+
+            activeExams.forEach(exam => {
+                let sPage = exam.startPage !== undefined ? exam.startPage : 1;
+                let ePage = exam.endPage !== undefined ? exam.endPage : 30;
+                let timeP = exam.timePerPage || 10;
+                let totalRangeP = Math.max(1, (ePage - sPage) + 1);
+                let lowerLimit = Math.ceil(totalRangeP / 5);
+
+                let studiedPagesSet = new Set();
+                logs.forEach(log => {
+                    if (log.examId === exam.id && log.pageStart !== null && log.pageEnd !== null) {
+                        for (let p = log.pageStart; p <= log.pageEnd; p++) {
+                            studiedPagesSet.add(p);
+                        }
                     }
+                });
+
+                let allPages = [];
+                for (let p = sPage; p <= ePage; p++) {
+                    allPages.push(p);
+                }
+
+                let unstudiedPages = allPages.filter(p => !studiedPagesSet.has(p));
+
+                if (unstudiedPages.length === 0 && exam.repeating) {
+                    unstudiedPages = [...allPages];
+                }
+
+                examPageQueues.push({
+                    examId: exam.id,
+                    examTitle: exam.title,
+                    subjectId: exam.subjectId,
+                    timePerPage: timeP,
+                    lowerLimit: lowerLimit,
+                    allPages: allPages,
+                    unstudiedPages: unstudiedPages,
+                    studiedPagesSet: studiedPagesSet
+                });
+            });
+
+            if (examPageQueues.length === 0) {
+                container.innerHTML = '<p class="text-sm text-emerald-600 font-bold">✨ すべての期末ワークの範囲が完了しています！お疲れ様でした！</p>';
+                return;
+            }
+
+            let totalStudiedPagesAcrossAll = 0;
+            logs.forEach(log => {
+                if (log.pageStart !== null && log.pageEnd !== null) {
+                    let size = (log.pageEnd - log.pageStart) + 1;
+                    if (size > 0) totalStudiedPagesAcrossAll += size;
                 }
             });
 
-            let unstudied = [];
-            let totalRangeSize = (endPage - startPage) + 1;
-            
-            // 何周完了したかを計算
-            let completedLaps = 0;
-            if (totalRangeSize > 0) {
-                let allStudiedCount = 0;
-                for (let p = startPage; p <= endPage; p++) {
-                    if (studiedSet.has(p)) allStudiedCount++;
+            let activeExamIndex = totalStudiedPagesAcrossAll % examPageQueues.length;
+
+            let assignedExamsMap = {};
+            let currentAllocatedMinutes = 0;
+            let countAssigned = 0;
+
+            while (countAssigned < examPageQueues.length && currentAllocatedMinutes < remainingBudget) {
+                let currentExam = examPageQueues[activeExamIndex % examPageQueues.length];
+                
+                if (!assignedExamsMap[currentExam.examId]) {
+                    let assignCount = Math.min(currentExam.lowerLimit, currentExam.unstudiedPages.length);
+                    let requiredTime = assignCount * currentExam.timePerPage;
+
+                    if (countAssigned > 0 && currentAllocatedMinutes + requiredTime > remainingBudget) {
+                        break;
+                    }
+
+                    let assignedPages = currentExam.unstudiedPages.slice(0, assignCount);
+                    assignedExamsMap[currentExam.examId] = {
+                        examId: currentExam.examId,
+                        title: currentExam.examTitle,
+                        subjectId: currentExam.subjectId,
+                        fullStart: currentExam.allPages[0],
+                        fullEnd: currentExam.allPages[currentExam.allPages.length - 1],
+                        unstudiedPages: currentExam.unstudiedPages,
+                        assignedPages: assignedPages,
+                        studiedPagesSet: currentExam.studiedPagesSet,
+                        isFullyCompleted: currentExam.unstudiedPages.length === 0
+                    };
+
+                    currentAllocatedMinutes += requiredTime;
+                    countAssigned++;
                 }
-                // 周回モードの場合、過去ログから総学習ページ数を計算して周回数を割り出すことも可能
+
+                activeExamIndex++;
             }
 
-            // シンプルかつ強力に、未完了のページリストを構築
-            for (let p = startPage; p <= endPage; p++) {
-                if (!studiedSet.has(p)) unstudied.push(p);
+            let statusDisplayHtml = '';
+            if (isExceeded) {
+                statusDisplayHtml = `
+                    <div class="text-emerald-700 font-extrabold text-sm flex items-center gap-1">
+                        <i class="fa-solid fa-trophy text-amber-500"></i> 目標達成！ 🎉 (+${excessMinutes}分 超過)
+                    </div>
+                `;
+            } else {
+                statusDisplayHtml = `
+                    <span class="text-indigo-700 font-extrabold text-base">残りあと <span class="text-indigo-900 underline">${remainingBudget}分</span> (目標 ${targetBudget}分)</span>
+                `;
             }
 
-            return { studiedSet, unstudied };
+            let html = `
+                <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-xl mb-4 flex justify-between items-center flex-wrap gap-2 text-xs">
+                    <div>
+                        <span class="font-bold text-indigo-900 block mb-0.5"><i class="fa-solid fa-hourglass-half mr-1"></i> 本日の目標と進捗状況</span>
+                        ${statusDisplayHtml}
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-600 block">本日の学習時間: <strong class="text-indigo-600">${todayStudiedMinutes}分</strong></span>
+                    </div>
+                </div>
+            `;
+
+            Object.keys(assignedExamsMap).forEach(examId => {
+                const group = assignedExamsMap[examId];
+                const sub = subjects.find(s => s.id === group.subjectId) || { name: '不明', color: '#cbd5e1' };
+                
+                let fullRangeStr = `p.${group.fullStart}〜p.${group.fullEnd}`;
+                
+                // 本日の割当ページのうち、まだやっていない（未完了の）ページだけをフィルタリングして抽出！
+                let remainingAssignedPages = group.assignedPages.filter(p => !group.studiedPagesSet.has(p));
+                let assignedDisplayStr = formatPageRanges(remainingAssignedPages);
+
+                let isAssignedCompleted = group.assignedPages.length > 0 && remainingAssignedPages.length === 0;
+                let isFullyCompleted = group.isFullyCompleted;
+                let isGreen = isAssignedCompleted || isFullyCompleted;
+
+                html += `
+                    <div class="p-4 bg-slate-50 border ${isGreen ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200'} rounded-xl flex items-center justify-between transition mb-3">
+                        <div class="flex items-center gap-3 w-full">
+                            <div class="w-full">
+                                <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs px-2 py-0.5 rounded text-white font-medium" style="background-color: ${sub.color}">${sub.name}</span>
+                                        <span class="text-sm font-bold text-slate-800">${group.title}</span>
+                                        <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">全体範囲: ${fullRangeStr}</span>
+                                    </div>
+                                    ${isGreen ? '<span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> ミッション達成！</span>' : '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">進行中</span>'}
+                                </div>
+                                <div class="text-xs text-slate-500 mt-2 flex items-center gap-3 flex-wrap">
+                                    <span class="bg-amber-50 text-amber-900 px-2.5 py-1 rounded-lg font-bold border border-amber-200">
+                                        📖 本日の残り範囲: ${isGreen ? 'クリア！' : assignedDisplayStr} ${isGreen ? '' : `(${remainingAssignedPages.length}ページ残り)`}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
         function renderMissions() {
             const container = document.getElementById('today-missions-container');
+            if (!container) return;
             container.innerHTML = '';
 
             const todayStr = new Date().toDateString();
             const now = new Date();
             const todaysSchedules = dateSchedules.filter(s => s.dateStr === todayStr);
+
+            const targetBudget = dayBudgets[todayStr] !== undefined ? dayBudgets[todayStr] : dailyTotalBudget;
 
             let html = '';
 
@@ -1134,135 +1358,27 @@
                 html += `</div></div>`;
             }
 
-            const candidateExams = exams.filter(exam => {
-                const deadlineDate = new Date(exam.deadline);
-                const diffDays = (deadlineDate - now) / (1000 * 60 * 60 * 24);
-                return diffDays <= 21;
-            });
+            const defaultKey = `default_marathon_all_${todayStr}`;
+            const isCompleted = !!missionCompletions[defaultKey];
 
-            if (candidateExams.length === 0) {
-                const defaultKey = `default_30min_${todayStr}`;
-                const isCompleted = !!missionCompletions[defaultKey];
-
-                html += `
-                    <div class="p-4 bg-slate-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-slate-200'} rounded-xl flex items-center justify-between transition">
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleDefaultMission('${defaultKey}')" class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
-                            <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs px-2 py-0.5 rounded bg-indigo-600 text-white font-medium">基本</span>
-                                    <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">30分間の自習・復習</span>
-                                </div>
-                                <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span>目標時間: <strong class="text-indigo-600 text-sm">${dailyTotalBudget}分 〜 ${dailyTotalBudget + 9}分</strong></span>
-                                    ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！お疲れ様でした</span>' : ''}
-                                </div>
+            html += `
+                <div class="p-4 bg-amber-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-amber-200'} rounded-xl flex items-center justify-between transition">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleDefaultMission('${defaultKey}')" class="w-5 h-5 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs px-2 py-0.5 rounded bg-amber-600 text-white font-medium">期末モード</span>
+                                <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">期末専用の作業をすべて行う (目標: ${targetBudget}分)</span>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+                                <span>設定された目標時間の範囲内で期末専用タブのローテーション作業を進めます。</span>
+                                ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！お疲れ様でした</span>' : ''}
                             </div>
                         </div>
                     </div>
-                `;
-                container.innerHTML = html;
-                document.getElementById('mission-range-info').innerText = '期限が3週間以内の直近の提出物はありません（基本の自習を表示中）。';
-                return;
-            }
-
-            candidateExams.forEach(exam => {
-                const sub = subjects.find(s => s.id === exam.subjectId) || { name: '不明', color: '#cbd5e1' };
-                const key = `${exam.id}_${todayStr}`;
-                const isCompleted = !!missionCompletions[key];
-
-                const deadlineDate = new Date(exam.deadline);
-                const diffDays = Math.max(1, Math.ceil((deadlineDate - now) / (1000 * 60 * 60 * 24)));
-
-                let sPage = exam.startPage !== undefined ? exam.startPage : 1;
-                let ePage = exam.endPage !== undefined ? exam.endPage : (exam.pages || 20);
-                let rangeTotalSize = (ePage - sPage) + 1;
-
-                // 過去のログから、このワークが何周終わっているか、かつ今日どこをやればいいかを計算
-                let totalStudiedCount = 0;
-                logs.forEach(log => {
-                    if (log.examId === exam.id && log.pageStart !== null && log.pageEnd !== null) {
-                        // ログに記録されたページ数を積算
-                        let lSize = (log.pageEnd - log.pageStart) + 1;
-                        if (lSize > 0) totalStudiedCount += lSize;
-                    }
-                });
-
-                // 何周目か (0周目スタートなら完了数 / 全体ページ数)
-                let currentLap = Math.floor(totalStudiedCount / rangeTotalSize);
-
-                // 未完了ページの抽出
-                const { studiedSet, unstudied } = getStudiedPagesInfo(exam.id, sPage, ePage);
-                let targetUnstudied = unstudied;
-
-                if (targetUnstudied.length === 0) {
-                    if (exam.repeating) {
-                        // 周回ありで1周し終わっている場合、次の周回へ進む
-                        currentLap++;
-                        targetUnstudied = [];
-                        for (let p = sPage; p <= ePage; p++) targetUnstudied.push(p);
-                    } else {
-                        return; // 周回なしで完了済みなら表示しない
-                    }
-                }
-
-                // ペース計算
-                let pagesToAssign = 1;
-                if (exam.repeating) {
-                    let timePerP = exam.timePerPage || 5;
-                    let possiblePages = Math.floor(dailyTotalBudget / timePerP);
-                    pagesToAssign = Math.max(1, Math.min(possiblePages, targetUnstudied.length));
-                } else {
-                    if (diffDays <= 7) {
-                        pagesToAssign = Math.ceil(targetUnstudied.length / diffDays);
-                    } else {
-                        pagesToAssign = 1;
-                    }
-                }
-
-                let todayAssignedPages = targetUnstudied.slice(0, pagesToAssign);
-                let rangeText = todayAssignedPages.length > 1 ? `p.${todayAssignedPages[0]} 〜 p.${todayAssignedPages[todayAssignedPages.length - 1]}` : `p.${todayAssignedPages[0]}`;
-                let allocatedMins = todayAssignedPages.length * (exam.timePerPage || 5);
-
-                // 期末モード（周回あり）の時、何周目か＋範囲を表示（例: 2周目 ＋ p.13~p.18）
-                let displayRangeText = rangeText;
-                if (exam.repeating && currentLap > 0) {
-                    displayRangeText = `<strong class="text-indigo-700">${currentLap + 1}周目</strong> ＋ ${rangeText}`;
-                } else if (exam.repeating) {
-                    displayRangeText = `<strong class="text-indigo-700">1周目</strong> ＋ ${rangeText}`;
-                }
-
-                html += `
-                    <div class="p-4 bg-slate-50 border ${isCompleted ? 'border-emerald-200 bg-emerald-50/40 opacity-75' : 'border-slate-200'} rounded-xl flex items-center justify-between transition">
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" ${isCompleted ? 'checked' : ''} onclick="toggleMissionCompletion('${exam.id}')" class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
-                            <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs px-2 py-0.5 rounded text-white font-medium" style="background-color: ${sub.color}">${sub.name}</span>
-                                    <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">${exam.title}</span>
-                                    ${exam.repeating ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">🔄 期末モード</span>' : '<span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">⏱️ 通常</span>'}
-                                    <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">あと${diffDays}日</span>
-                                </div>
-                                <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg font-bold border border-indigo-100">📖 今日やる範囲: ${displayRangeText} (${todayAssignedPages.length}ページ)</span>
-                                    <span>目安時間: <strong class="text-indigo-600 text-sm">${allocatedMins}分</strong></span>
-                                    ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！</span>' : ''}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
+                </div>
+            `;
             container.innerHTML = html;
-            document.getElementById('mission-range-info').innerText = '期限が3週間以内の直近の提出物が表示されています。期末モードでは進み具合に合わせて「○周目 ＋ ページ範囲」が自動で算出されます。';
-        }
-
-        function toggleDefaultMission(key) {
-            missionCompletions[key] = !missionCompletions[key];
-            saveCurrentUserData();
-            renderMissions();
-            renderCalendar();
         }
 
         function checkUrgentTabVisibility() {
@@ -1319,7 +1435,7 @@
                 }
 
                 let sPage = exam.startPage !== undefined ? exam.startPage : 1;
-                let ePage = exam.endPage !== undefined ? exam.endPage : 20;
+                let ePage = exam.endPage !== undefined ? exam.endPage : 30;
 
                 const div = document.createElement('div');
                 div.className = 'p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3';
@@ -1373,22 +1489,7 @@
                 const dayTotalSeconds = dayLogs.reduce((acc, cur) => acc + cur.duration, 0);
                 const dayTotalMins = Math.round(dayTotalSeconds / 60);
 
-                const activeExams = exams.filter(exam => {
-                    const diffDays = (new Date(exam.deadline) - new Date()) / (1000 * 60 * 60 * 24);
-                    return diffDays <= 21;
-                });
-
-                let hasCompletedMission = false;
-                if (activeExams.length === 0) {
-                    if (missionCompletions[`default_30min_${dateStr}`]) hasCompletedMission = true;
-                } else {
-                    let allDone = true;
-                    activeExams.forEach(exam => {
-                        if (!missionCompletions[`${exam.id}_${dateStr}`]) allDone = false;
-                    });
-                    if (activeExams.length > 0 && allDone) hasCompletedMission = true;
-                }
-
+                const hasCompletedMission = !!missionCompletions[`default_marathon_all_${dateStr}`];
                 const daySchedules = dateSchedules.filter(s => s.dateStr === dateStr);
 
                 const cell = document.createElement('div');
@@ -1457,7 +1558,6 @@
 
             const dayBudget = dayBudgets[dateStr] !== undefined ? dayBudgets[dateStr] : dailyTotalBudget;
             document.getElementById('selected-day-budget-input').value = dayBudget;
-            updateBudgetRangeDisplay();
 
             renderSelectedDaySchedules(dateStr, isPast);
             renderSelectedDayLogs(dateStr);
@@ -1551,15 +1651,14 @@
 
         function saveSelectedDayBudget(val) {
             const parsed = parseInt(val);
-            if (!isNaN(parsed) && parsed >= 30) {
+            if (!isNaN(parsed) && parsed >= 10) {
                 dayBudgets[selectedCalDateStr] = parsed;
                 if (selectedCalDateStr === new Date().toDateString()) {
                     dailyTotalBudget = parsed;
-                    document.getElementById('daily-total-budget').value = parsed;
-                    updateBudgetRangeDisplay();
                 }
                 saveCurrentUserData();
                 renderMissions();
+                renderFinalMarathon();
             }
         }
 
