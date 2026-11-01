@@ -16,20 +16,116 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- 1. ログイン / アカウント作成画面 -->
-    <div id="auth-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 w-full max-w-md">
+    <!-- 0. ログイン前ホームページ（紹介ランディングページ） -->
+    <div id="landing-page" class="min-h-screen flex flex-col justify-between bg-gradient-to-b from-indigo-900 via-indigo-800 to-slate-900 text-white">
+        <header class="max-w-4xl w-full mx-auto px-6 py-6 flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-indigo-400"></i>StudyLog
+            </h1>
+            <div class="flex items-center gap-3">
+                <button onclick="openAuthModal('login')" class="text-xs sm:text-sm font-medium hover:text-indigo-200 transition">ログイン</button>
+                <button onclick="openAuthModal('register')" class="bg-indigo-600 hover:bg-indigo-500 text-xs sm:text-sm px-4 py-2 rounded-xl font-medium transition shadow-sm">新規登録</button>
+            </div>
+        </header>
+
+        <main class="max-w-4xl w-full mx-auto px-6 py-12 text-center space-y-12">
+            <div class="space-y-4">
+                <span class="inline-block bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs px-3 py-1 rounded-full font-bold">
+                    ✨ 中高生の効率的な学習管理をサポート
+                </span>
+                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                    勉強の計画と記録を、<br><span class="text-indigo-400">もっとスマートに。</span>
+                </h2>
+                <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto">
+                    StudyLogは、日々の学習時間管理からテスト前の追い込み、提出物の計画的な消化までこれ一つで完璧に管理できる学習サポートアプリです。
+                </p>
+                <div class="pt-4 flex justify-center gap-3 flex-wrap">
+                    <button onclick="openAuthModal('register')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold text-sm sm:text-base transition shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-rocket"></i> 無料ではじめる
+                    </button>
+                    <button onclick="openAuthModal('login')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-6 py-3.5 rounded-xl font-bold text-sm sm:text-base transition">
+                        ログインはこちら
+                    </button>
+                </div>
+            </div>
+
+            <!-- 特徴グリッド -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-left pt-6">
+                <div class="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl backdrop-blur-xs space-y-2">
+                    <div class="w-10 h-10 bg-indigo-600/30 text-indigo-400 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-white">タイマーで日々の勉強管理</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        バックグラウンドや再起動でも正確に動き続けるストップウォッチで、毎日の勉強時間をしっかり記録。
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl backdrop-blur-xs space-y-2">
+                    <div class="w-10 h-10 bg-indigo-600/30 text-indigo-400 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-white">目標時間で確実な継続</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        日ごとの目標時間を自由に設定できるから、モチベーションを維持しながら無理なく毎日続けられる。
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl backdrop-blur-xs space-y-2">
+                    <div class="w-10 h-10 bg-indigo-600/30 text-indigo-400 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-note-sticky"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-white">間違えた問題の見直し</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        やった範囲や詳細な振り返りメモを記録。直前チェック機能で苦手な問題やケアレスミスをまとめて見直せる。
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl backdrop-blur-xs space-y-2">
+                    <div class="w-10 h-10 bg-indigo-600/30 text-indigo-400 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-fire-flame-curved"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-white">テスト前効率勉強プログラム</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        期末専用のローテーションモードや集中期間ロックで、テスト直前でも迷わず最適な勉強に集中できる。
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 border border-slate-700/80 p-6 rounded-2xl backdrop-blur-xs space-y-2 sm:col-span-2 md:col-span-2">
+                    <div class="w-10 h-10 bg-indigo-600/30 text-indigo-400 rounded-xl flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <h3 class="font-bold text-base text-white">提出物のため込みを完全防止</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        ワークや問題集のページ範囲と期限から、毎日やるべき分量を自動で割り当て。課題のやり忘れや溜め込みをスマートに防ぎます。
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="max-w-4xl w-full mx-auto px-6 py-6 text-center text-xs text-slate-400 border-t border-slate-800">
+            &copy; 2026 StudyLog All Rights Reserved.
+        </footer>
+    </div>
+
+    <!-- 1. ログイン / アカウント作成モーダル -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8 w-full max-w-md relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-sm">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
             <div class="text-center mb-6">
                 <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
-                <h2 class="text-xl font-bold text-slate-800">StudyLog へようこそ</h2>
-                <p class="text-xs text-slate-500 mt-1">ユーザー名とパスワードのみでログインできます</p>
+                <h2 id="auth-modal-title" class="text-xl font-bold text-slate-800">ログイン</h2>
+                <p id="auth-modal-subtitle" class="text-xs text-slate-500 mt-1">ユーザー名とパスワードを入力してください</p>
             </div>
 
             <div id="auth-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl font-medium"></div>
 
-            <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">ユーザー名</label>
                     <input type="text" id="auth-username" placeholder="例: tanaka" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -40,11 +136,11 @@
                 </div>
 
                 <div class="pt-2 flex flex-col gap-2">
-                    <button type="submit" id="btn-login" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-sm">
+                    <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-sm">
                         ログイン
                     </button>
-                    <button type="button" onclick="handleRegister()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 rounded-xl text-sm transition">
-                        新規アカウント作成
+                    <button type="button" onclick="toggleAuthMode()" id="auth-switch-btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2.5 rounded-xl text-sm transition">
+                        新規アカウント作成はこちら
                     </button>
                 </div>
             </form>
@@ -170,7 +266,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 mb-1">今日やった範囲と詳細メモ</label>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">今日やった範囲と詳細メモ (間違えた問題の振り返りなど)</label>
                         <textarea id="timer-memo-detail" rows="3" placeholder="例：計算問題でケアレスミスが多かったので、明日もう一度見直す。" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                     </div>
                 </div>
@@ -348,7 +444,7 @@
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <button type="button" onclick="closeExamModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-medium transition">
+                        <button type="button" onclick="closeAuthModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-medium transition">
                             キャンセル
                         </button>
                         <button type="button" onclick="confirmSaveExam()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-medium transition shadow-sm">
@@ -538,11 +634,14 @@
         let currentCalDate = new Date();
         let selectedCalDateStr = new Date().toDateString();
 
+        let isRegisterMode = false; // 認証モーダルのモード切替用
+
         window.onload = function() {
             if (currentUser && users[currentUser]) {
+                showLandingPage(false);
                 loadUserData(currentUser);
             } else {
-                showAuthModal();
+                showLandingPage(true);
             }
 
             document.addEventListener('visibilitychange', function() {
@@ -552,14 +651,96 @@
             });
         };
 
-        function showAuthModal() {
-            document.getElementById('auth-modal').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
+        function showLandingPage(show) {
+            const landing = document.getElementById('landing-page');
+            const app = document.getElementById('app-content');
+            const authModal = document.getElementById('auth-modal');
+            
+            authModal.classList.add('hidden');
+            if (show) {
+                landing.classList.remove('hidden');
+                app.classList.add('hidden');
+            } else {
+                landing.classList.add('hidden');
+                app.classList.remove('hidden');
+            }
         }
 
-        function hideAuthModal() {
+        function openAuthModal(mode) {
+            isRegisterMode = (mode === 'register');
+            updateAuthModalUI();
+            document.getElementById('auth-error').classList.add('hidden');
+            document.getElementById('auth-username').value = '';
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
             document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
+        }
+
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            updateAuthModalUI();
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+
+        function updateAuthModalUI() {
+            const title = document.getElementById('auth-modal-title');
+            const sub = document.getElementById('auth-modal-subtitle');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const switchBtn = document.getElementById('auth-switch-btn');
+
+            if (isRegisterMode) {
+                title.innerText = '新規アカウント作成';
+                sub.innerText = 'ユーザー名とパスワードを決めて登録してください';
+                submitBtn.innerText = 'アカウント作成してはじめる';
+                switchBtn.innerText = 'すでにアカウントをお持ちの方はこちら（ログイン）';
+            } else {
+                title.innerText = 'ログイン';
+                sub.innerText = '登録したユーザー名とパスワードを入力してください';
+                submitBtn.innerText = 'ログイン';
+                switchBtn.innerText = '新規アカウント作成はこちら';
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+
+            if (!username || !password) return;
+
+            if (isRegisterMode) {
+                if (users[username]) { showAuthError('そのユーザー名はすでに使用されています。'); return; }
+                users[username] = {
+                    password: password,
+                    data: {
+                        subjects: [
+                            { id: '1', name: '国語', color: '#ef4444' },
+                            { id: '2', name: '数学', color: '#3b82f6' },
+                            { id: '3', name: '英語', color: '#10b981' },
+                            { id: '4', name: '理科', color: '#f59e0b' },
+                            { id: '5', name: '社会', color: '#8b5cf6' }
+                        ],
+                        logs: [],
+                        exams: [],
+                        dateSchedules: [],
+                        missionCompletions: {},
+                        dailyTotalBudget: 180,
+                        dayBudgets: {},
+                        focusPeriod: { start: '', end: '' },
+                        lastLoginDate: ''
+                    }
+                };
+                localStorage.setItem('studylog_users', JSON.stringify(users));
+                alert('アカウントを作成しました！');
+                loginUser(username);
+            } else {
+                if (!users[username]) { showAuthError('ユーザーが存在しません。'); return; }
+                if (users[username].password !== password) { showAuthError('パスワードが正しくありません。'); return; }
+                loginUser(username);
+            }
         }
 
         function showAuthError(msg) {
@@ -568,67 +749,20 @@
             errDiv.classList.remove('hidden');
         }
 
-        function handleAuth(e) {
-            e.preventDefault();
-            const username = document.getElementById('auth-username').value.trim();
-            const password = document.getElementById('auth-password').value;
-
-            if (!username || !password) return;
-            if (!users[username]) { showAuthError('ユーザーが存在しません。'); return; }
-            if (users[username].password !== password) { showAuthError('パスワードが正しくありません。'); return; }
-
-            loginUser(username);
-        }
-
-        function handleRegister() {
-            const username = document.getElementById('auth-username').value.trim();
-            const password = document.getElementById('auth-password').value;
-
-            if (!username || !password) { showAuthError('ユーザー名とパスワードを入力してください。'); return; }
-            if (users[username]) { showAuthError('そのユーザー名はすでに使用されています。'); return; }
-
-            users[username] = {
-                password: password,
-                data: {
-                    subjects: [
-                        { id: '1', name: '国語', color: '#ef4444' },
-                        { id: '2', name: '数学', color: '#3b82f6' },
-                        { id: '3', name: '英語', color: '#10b981' },
-                        { id: '4', name: '理科', color: '#f59e0b' },
-                        { id: '5', name: '社会', color: '#8b5cf6' }
-                    ],
-                    logs: [],
-                    exams: [],
-                    dateSchedules: [],
-                    missionCompletions: {},
-                    dailyTotalBudget: 180,
-                    dayBudgets: {},
-                    focusPeriod: { start: '', end: '' },
-                    lastLoginDate: ''
-                }
-            };
-
-            localStorage.setItem('studylog_users', JSON.stringify(users));
-            alert('アカウントを作成しました！');
-            loginUser(username);
-        }
-
         function loginUser(username) {
             currentUser = username;
             localStorage.setItem('studylog_current_user', username);
+            showLandingPage(false);
+            closeAuthModal();
             loadUserData(username);
-            hideAuthModal();
         }
 
         function logout() {
             pauseTimer();
             currentUser = null;
             localStorage.removeItem('studylog_current_user');
-            localStorage.removeItem('studylog_active_timer'); // ログアウト時はタイマー退避もクリア
-            document.getElementById('auth-username').value = '';
-            document.getElementById('auth-password').value = '';
-            document.getElementById('auth-error').classList.add('hidden');
-            showAuthModal();
+            localStorage.removeItem('studylog_active_timer_' + (currentUser || ''));
+            showLandingPage(true);
         }
 
         let lastLoginDate = '';
@@ -674,7 +808,6 @@
             selectCalendarDate(new Date().toDateString());
             initChart();
 
-            // シャットダウンや再ログイン・再読み込みをまたいでタイマー状態を復元！
             restoreActiveTimerState();
 
             const todayStr = new Date().toDateString();
@@ -683,7 +816,6 @@
             }
         }
 
-        // --- タイマー状態の自動保存＆復元機能 ---
         function saveActiveTimerState() {
             if (!currentUser) return;
             const state = {
@@ -717,7 +849,6 @@
                 if (state.memo) document.getElementById('timer-memo-detail').value = state.memo;
 
                 if (state.isRunning && state.timerStartTime) {
-                    // シャットダウン中や再ログイン中も経過時間を正しく算出してタイマーを再開！
                     isRunning = true;
                     timerStartTime = state.timerStartTime;
                     accumulatedSeconds = state.accumulatedSeconds || 0;
@@ -727,7 +858,7 @@
 
                     timerInterval = setInterval(() => {
                         updateTimerDisplay();
-                        saveActiveTimerState(); // 1秒ごとにストレージへ現在状態を退避
+                        saveActiveTimerState();
                     }, 1000);
                 } else {
                     accumulatedSeconds = state.accumulatedSeconds || 0;
@@ -861,7 +992,7 @@
                         users = imported.users;
                         localStorage.setItem('studylog_users', JSON.stringify(users));
                         if (imported.currentUser && users[imported.currentUser]) { loginUser(imported.currentUser); }
-                        else { showAuthModal(); }
+                        else { showLandingPage(true); }
                         alert('データを正常に復元しました！');
                     }
                 } catch (err) { alert('ファイルの読み込みに失敗しました。'); }
@@ -901,7 +1032,6 @@
             if (tabId === 'calendar') renderCalendar();
         }
 
-        // --- 修正されたタイマー操作関数 ---
         function startTimer() {
             if (isRunning) return;
             isRunning = true;
@@ -911,7 +1041,7 @@
             
             timerInterval = setInterval(() => {
                 updateTimerDisplay();
-                saveActiveTimerState(); // 1秒ごとに自動保存
+                saveActiveTimerState();
             }, 1000);
             saveActiveTimerState();
         }
@@ -1101,7 +1231,6 @@
             });
         }
 
-        // --- ミッション・テスト範囲（ポップアップ連動） ---
         function openExamModal(e) {
             e.preventDefault();
             const todayStr = new Date().toISOString().slice(0, 10);
@@ -1165,7 +1294,6 @@
             exams.forEach(exam => {
                 const sub = subjects.find(s => s.id === exam.subjectId) || { name: '不明', color: '#cbd5e1' };
                 const deadlineDate = new Date(exam.deadline);
-                const diffDays = Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24));
                 
                 let sPage = exam.startPage !== undefined ? exam.startPage : 1;
                 let ePage = exam.endPage !== undefined ? exam.endPage : 30;
@@ -1238,7 +1366,6 @@
             return parts.join(', ');
         }
 
-        // --- 期末専用ミッション ---
         function renderFinalMarathon() {
             const container = document.getElementById('final-marathon-container');
             const marathonBtn = document.getElementById('btn-final-marathon');
@@ -1590,7 +1717,6 @@
             });
         }
 
-        // --- 3. カレンダー機能 ---
         function renderCalendar() {
             const year = currentCalDate.getFullYear();
             const month = currentCalDate.getMonth();
@@ -1793,7 +1919,6 @@
             }
         }
 
-        // --- 4. グラフ機能 ---
         function initChart() {
             const ctx = document.getElementById('studyChart').getContext('2d');
             if (myChart) myChart.destroy();
