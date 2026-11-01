@@ -526,8 +526,10 @@
         let dayBudgets = {};
         let focusPeriod = { start: '', end: '' };
 
+        // タイムスタンプ方式によるタイマー管理
         let timerInterval = null;
-        let secondsElapsed = 0;
+        let timerStartTime = null;      // スタート時の絶対時刻（ミリ秒）
+        let accumulatedSeconds = 0;   // 一時停止までに蓄積された秒数
         let isRunning = false;
 
         let myChart = null;
@@ -542,6 +544,13 @@
             } else {
                 showAuthModal();
             }
+
+            // アプリがバックグラウンドから復帰した時やタブが再表示された時に時間を再計算・同期
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden && isRunning) {
+                    updateTimerDisplay();
+                }
+            });
         };
 
         function showAuthModal() {
@@ -836,38 +845,59 @@
             if (tabId === 'calendar') renderCalendar();
         }
 
-        // --- タイマー機能 ---
+        // --- 修正されたタイマー機能（タイムスタンプ＆バックグラウンド対応） ---
         function startTimer() {
             if (isRunning) return;
             isRunning = true;
+            timerStartTime = Date.now(); // 現在の絶対時刻を基準にする
             document.getElementById('start-btn').classList.add('hidden');
             document.getElementById('pause-btn').classList.remove('hidden');
-            timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+            
+            timerInterval = setInterval(() => {
+                updateTimerDisplay();
+            }, 1000);
         }
 
         function pauseTimer() {
             if (!isRunning) return;
             isRunning = false;
             clearInterval(timerInterval);
+            
+            // 経過した秒数を累積に足す
+            const now = Date.now();
+            const elapsedSinceStart = Math.floor((now - timerStartTime) / 1000);
+            accumulatedSeconds += elapsedSinceStart;
+
             document.getElementById('start-btn').classList.remove('hidden');
             document.getElementById('pause-btn').classList.add('hidden');
+            updateTimerDisplay();
         }
 
         function resetTimer() {
             pauseTimer();
-            secondsElapsed = 0;
+            accumulatedSeconds = 0;
+            timerStartTime = null;
             updateTimerDisplay();
         }
 
+        function getCurrentTotalSeconds() {
+            if (!isRunning) return accumulatedSeconds;
+            const now = Date.now();
+            const currentSessionSeconds = Math.floor((now - timerStartTime) / 1000);
+            return accumulatedSeconds + currentSessionSeconds;
+        }
+
         function updateTimerDisplay() {
-            const h = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
-            const m = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
-            const s = String(secondsElapsed % 60).padStart(2, '0');
+            const totalSec = getCurrentTotalSeconds();
+            const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+            const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+            const s = String(totalSec % 60).padStart(2, '0');
             document.getElementById('stopwatch-display').innerText = `${h}:${m}:${s}`;
         }
 
         function saveStudyLog() {
-            if (secondsElapsed < 10) { alert('10秒以上計測してください。'); return; }
+            const totalSec = getCurrentTotalSeconds();
+            if (totalSec < 10) { alert('10秒以上計測してください。'); return; }
             
             const examId = document.getElementById('timer-exam').value;
             const pStart = document.getElementById('timer-page-start').value.trim();
@@ -889,7 +919,7 @@
                 id: Date.now().toString(),
                 subjectId: subjectId,
                 examId: examId || null,
-                duration: secondsElapsed,
+                duration: totalSec,
                 title: title,
                 detail: detail,
                 pageStart: pStart ? parseInt(pStart) : null,
@@ -1090,7 +1120,7 @@
                             <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">期末モード</span>
                         </div>
                         <div class="text-xs text-slate-500 space-x-3">
-                            <span>1P目安: ${exam.timePerPage || 10}분</span>
+                            <span>1P目安: ${exam.timePerPage || 10}分</span>
                             <span>期限: ${deadlineDate.toLocaleDateString()}</span>
                         </div>
                     </div>
@@ -1146,7 +1176,7 @@
             return parts.join(', ');
         }
 
-        // --- 期末専用ミッション（登録有無の自動切り替え対応） ---
+        // --- 期末専用ミッション ---
         function renderFinalMarathon() {
             const container = document.getElementById('final-marathon-container');
             const marathonBtn = document.getElementById('btn-final-marathon');
@@ -1157,7 +1187,6 @@
                 return diffDays <= 21;
             });
 
-            // 期末テストが登録されていない場合はタブを非表示にし、タイマー側も通常モードにする
             if (activeExams.length === 0) {
                 marathonBtn.classList.add('hidden');
                 return;
@@ -1372,7 +1401,6 @@
                 html += `</div></div>`;
             }
 
-            // 期末テストが登録されていない場合は「自由学習 / フリーの目標時間達成」ミッションを表示
             if (activeExams.length === 0) {
                 const freeKey = `default_free_${todayStr}`;
                 const isFreeCompleted = !!missionCompletions[freeKey] || isExceeded || remainingBudget <= 0;
