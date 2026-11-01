@@ -526,10 +526,10 @@
         let dayBudgets = {};
         let focusPeriod = { start: '', end: '' };
 
-        // タイムスタンプ方式によるタイマー管理
+        // タイマー管理
         let timerInterval = null;
-        let timerStartTime = null;      // スタート時の絶対時刻（ミリ秒）
-        let accumulatedSeconds = 0;   // 一時停止までに蓄積された秒数
+        let timerStartTime = null;
+        let accumulatedSeconds = 0;
         let isRunning = false;
 
         let myChart = null;
@@ -545,7 +545,6 @@
                 showAuthModal();
             }
 
-            // アプリがバックグラウンドから復帰した時やタブが再表示された時に時間を再計算・同期
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden && isRunning) {
                     updateTimerDisplay();
@@ -625,6 +624,7 @@
             pauseTimer();
             currentUser = null;
             localStorage.removeItem('studylog_current_user');
+            localStorage.removeItem('studylog_active_timer'); // ログアウト時はタイマー退避もクリア
             document.getElementById('auth-username').value = '';
             document.getElementById('auth-password').value = '';
             document.getElementById('auth-error').classList.add('hidden');
@@ -673,12 +673,68 @@
             renderCalendar();
             selectCalendarDate(new Date().toDateString());
             initChart();
-            updateTimerDisplay();
+
+            // シャットダウンや再ログイン・再読み込みをまたいでタイマー状態を復元！
+            restoreActiveTimerState();
 
             const todayStr = new Date().toDateString();
             if (lastLoginDate !== todayStr) {
                 showDailySummaryModal();
             }
+        }
+
+        // --- タイマー状態の自動保存＆復元機能 ---
+        function saveActiveTimerState() {
+            if (!currentUser) return;
+            const state = {
+                isRunning: isRunning,
+                timerStartTime: timerStartTime,
+                accumulatedSeconds: accumulatedSeconds,
+                subjectId: document.getElementById('timer-subject').value,
+                examId: document.getElementById('timer-exam').value,
+                pageStart: document.getElementById('timer-page-start').value,
+                pageEnd: document.getElementById('timer-page-end').value,
+                memo: document.getElementById('timer-memo-detail').value
+            };
+            localStorage.setItem(`studylog_active_timer_${currentUser}`, JSON.stringify(state));
+        }
+
+        function restoreActiveTimerState() {
+            if (!currentUser) return;
+            const saved = localStorage.getItem(`studylog_active_timer_${currentUser}`);
+            if (!saved) {
+                updateTimerDisplay();
+                return;
+            }
+
+            try {
+                const state = JSON.parse(saved);
+                if (state.subjectId) document.getElementById('timer-subject').value = state.subjectId;
+                filterExamsBySubject();
+                if (state.examId) document.getElementById('timer-exam').value = state.examId;
+                if (state.pageStart) document.getElementById('timer-page-start').value = state.pageStart;
+                if (state.pageEnd) document.getElementById('timer-page-end').value = state.pageEnd;
+                if (state.memo) document.getElementById('timer-memo-detail').value = state.memo;
+
+                if (state.isRunning && state.timerStartTime) {
+                    // シャットダウン中や再ログイン中も経過時間を正しく算出してタイマーを再開！
+                    isRunning = true;
+                    timerStartTime = state.timerStartTime;
+                    accumulatedSeconds = state.accumulatedSeconds || 0;
+
+                    document.getElementById('start-btn').classList.add('hidden');
+                    document.getElementById('pause-btn').classList.remove('hidden');
+
+                    timerInterval = setInterval(() => {
+                        updateTimerDisplay();
+                        saveActiveTimerState(); // 1秒ごとにストレージへ現在状態を退避
+                    }, 1000);
+                } else {
+                    accumulatedSeconds = state.accumulatedSeconds || 0;
+                }
+            } catch(e) {}
+
+            updateTimerDisplay();
         }
 
         function saveCurrentUserData() {
@@ -845,17 +901,19 @@
             if (tabId === 'calendar') renderCalendar();
         }
 
-        // --- 修正されたタイマー機能（タイムスタンプ＆バックグラウンド対応） ---
+        // --- 修正されたタイマー操作関数 ---
         function startTimer() {
             if (isRunning) return;
             isRunning = true;
-            timerStartTime = Date.now(); // 現在の絶対時刻を基準にする
+            timerStartTime = Date.now();
             document.getElementById('start-btn').classList.add('hidden');
             document.getElementById('pause-btn').classList.remove('hidden');
             
             timerInterval = setInterval(() => {
                 updateTimerDisplay();
+                saveActiveTimerState(); // 1秒ごとに自動保存
             }, 1000);
+            saveActiveTimerState();
         }
 
         function pauseTimer() {
@@ -863,14 +921,15 @@
             isRunning = false;
             clearInterval(timerInterval);
             
-            // 経過した秒数を累積に足す
             const now = Date.now();
             const elapsedSinceStart = Math.floor((now - timerStartTime) / 1000);
             accumulatedSeconds += elapsedSinceStart;
+            timerStartTime = null;
 
             document.getElementById('start-btn').classList.remove('hidden');
             document.getElementById('pause-btn').classList.add('hidden');
             updateTimerDisplay();
+            saveActiveTimerState();
         }
 
         function resetTimer() {
@@ -878,10 +937,13 @@
             accumulatedSeconds = 0;
             timerStartTime = null;
             updateTimerDisplay();
+            if (currentUser) {
+                localStorage.removeItem(`studylog_active_timer_${currentUser}`);
+            }
         }
 
         function getCurrentTotalSeconds() {
-            if (!isRunning) return accumulatedSeconds;
+            if (!isRunning || !timerStartTime) return accumulatedSeconds;
             const now = Date.now();
             const currentSessionSeconds = Math.floor((now - timerStartTime) / 1000);
             return accumulatedSeconds + currentSessionSeconds;
