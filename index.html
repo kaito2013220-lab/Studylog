@@ -87,7 +87,7 @@
                     </div>
                     <h3 class="font-bold text-base text-white">テスト前効率勉強プログラム</h3>
                     <p class="text-xs text-slate-400 leading-relaxed">
-                        期末専用のローテーションモードや集中期間ロックで、テスト直前でも迷わず最適な勉強に集中できる。
+                        期末専用モードや集中期間ロックで、テスト直前でも迷わない最適な勉強環境を提供。
                     </p>
                 </div>
 
@@ -97,7 +97,7 @@
                     </div>
                     <h3 class="font-bold text-base text-white">提出物のため込みを完全防止</h3>
                     <p class="text-xs text-slate-400 leading-relaxed">
-                        ワークや問題集のページ範囲と期限から、毎日やるべき分量を自動で割り当て。課題のやり忘れや溜め込みをスマートに防ぎます。
+                        ワークの未完了ページがリアルタイムで自動計算されるため、自分のペースで効率よく消化できます。
                     </p>
                 </div>
             </div>
@@ -363,13 +363,10 @@
                                 <i class="fa-solid fa-fire-flame-curved"></i>
                             </div>
                             <div>
-                                <h2 class="text-lg font-bold text-slate-800">期末専用ミッション（一括ローテーション）</h2>
-                                <p class="text-xs text-slate-500">デイリータブで決めた目標時間の範囲内で割り当て。やった範囲は個別に消えて残りが表示されます。</p>
+                                <h2 class="text-lg font-bold text-slate-800">期末専用ミッション（選択式ワーク一覧）</h2>
+                                <p class="text-xs text-slate-500">登録されている期末ワークの「未完了のページ範囲」がリアルタイムで表示されます。</p>
                             </div>
                         </div>
-                        <button onclick="resetMarathonProgress()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition font-medium">
-                            <i class="fa-solid fa-rotate-right mr-1"></i>ローテーション位置リセット
-                        </button>
                     </div>
 
                     <div id="final-marathon-container" class="space-y-4"></div>
@@ -444,7 +441,7 @@
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <button type="button" onclick="closeAuthModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-medium transition">
+                        <button type="button" onclick="closeExamModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-medium transition">
                             キャンセル
                         </button>
                         <button type="button" onclick="confirmSaveExam()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-medium transition shadow-sm">
@@ -634,7 +631,7 @@
         let currentCalDate = new Date();
         let selectedCalDateStr = new Date().toDateString();
 
-        let isRegisterMode = false; // 認証モーダルのモード切替用
+        let isRegisterMode = false;
 
         window.onload = function() {
             if (currentUser && users[currentUser]) {
@@ -1338,13 +1335,6 @@
             alert('今日のミッションのチェックをリセットしました！');
         }
 
-        function resetMarathonProgress() {
-            if (confirm('期末専用ローテーションの進捗位置をリセットしますか？')) {
-                alert('位置をリセットしました！');
-                renderFinalMarathon();
-            }
-        }
-
         function formatPageRanges(pages) {
             if (!pages || pages.length === 0) return 'すべて完了';
             let sorted = [...pages].sort((a, b) => a - b);
@@ -1366,6 +1356,7 @@
             return parts.join(', ');
         }
 
+        // --- 期末専用ミッション（未完了ページを正確に追跡・表示） ---
         function renderFinalMarathon() {
             const container = document.getElementById('final-marathon-container');
             const marathonBtn = document.getElementById('btn-final-marathon');
@@ -1387,7 +1378,6 @@
 
             const todayStr = new Date().toDateString();
             const targetBudget = dayBudgets[todayStr] !== undefined ? dayBudgets[todayStr] : dailyTotalBudget;
-
             const todayLogs = logs.filter(l => new Date(l.date).toDateString() === todayStr);
             const todayStudiedMinutes = Math.round(todayLogs.reduce((acc, cur) => acc + cur.duration, 0) / 60);
 
@@ -1396,15 +1386,13 @@
             let excessMinutes = isExceeded ? Math.abs(diffMinutes) : 0;
             let remainingBudget = isExceeded ? 0 : diffMinutes;
 
-            let examPageQueues = [];
+            let taskListHtml = '';
 
             activeExams.forEach(exam => {
                 let sPage = exam.startPage !== undefined ? exam.startPage : 1;
                 let ePage = exam.endPage !== undefined ? exam.endPage : 30;
-                let timeP = exam.timePerPage || 10;
-                let totalRangeP = Math.max(1, (ePage - sPage) + 1);
-                let lowerLimit = Math.ceil(totalRangeP / 5);
 
+                // 過去にこのワークに対して記録されたページをすべて収集
                 let studiedPagesSet = new Set();
                 logs.forEach(log => {
                     if (log.examId === exam.id && log.pageStart !== null && log.pageEnd !== null) {
@@ -1414,91 +1402,52 @@
                     }
                 });
 
+                // 全ページの配列を作成
                 let allPages = [];
                 for (let p = sPage; p <= ePage; p++) {
                     allPages.push(p);
                 }
 
+                // まだやっていない（未完了の）ページだけを抽出
                 let unstudiedPages = allPages.filter(p => !studiedPagesSet.has(p));
 
+                // 周回あり（repeating）で全ページ終わっている場合は、1周完了して全ページを再ローテーション対象にする
                 if (unstudiedPages.length === 0 && exam.repeating) {
                     unstudiedPages = [...allPages];
                 }
 
-                examPageQueues.push({
-                    examId: exam.id,
-                    examTitle: exam.title,
-                    subjectId: exam.subjectId,
-                    timePerPage: timeP,
-                    lowerLimit: lowerLimit,
-                    allPages: allPages,
-                    unstudiedPages: unstudiedPages,
-                    studiedPagesSet: studiedPagesSet
-                });
-            });
+                let isCompleted = unstudiedPages.length === 0 && !exam.repeating;
+                let displayRangeStr = formatPageRanges(unstudiedPages);
 
-            if (examPageQueues.length === 0) {
-                container.innerHTML = '<p class="text-sm text-emerald-600 font-bold">✨ すべての期末ワークの範囲が完了しています！お疲れ様でした！</p>';
-                return;
-            }
+                const sub = subjects.find(s => s.id === exam.subjectId) || { name: '不明', color: '#cbd5e1' };
+                let fullRangeStr = `p.${sPage}〜p.${ePage}`;
 
-            let totalStudiedPagesAcrossAll = 0;
-            logs.forEach(log => {
-                if (log.pageStart !== null && log.pageEnd !== null) {
-                    let size = (log.pageEnd - log.pageStart) + 1;
-                    if (size > 0) totalStudiedPagesAcrossAll += size;
-                }
-            });
-
-            let activeExamIndex = totalStudiedPagesAcrossAll % examPageQueues.length;
-
-            let assignedExamsMap = {};
-            let currentAllocatedMinutes = 0;
-            let countAssigned = 0;
-
-            while (countAssigned < examPageQueues.length && currentAllocatedMinutes < remainingBudget) {
-                let currentExam = examPageQueues[activeExamIndex % examPageQueues.length];
-                
-                if (!assignedExamsMap[currentExam.examId]) {
-                    let assignCount = Math.min(currentExam.lowerLimit, currentExam.unstudiedPages.length);
-                    let requiredTime = assignCount * currentExam.timePerPage;
-
-                    if (countAssigned > 0 && currentAllocatedMinutes + requiredTime > remainingBudget) {
-                        break;
-                    }
-
-                    let assignedPages = currentExam.unstudiedPages.slice(0, assignCount);
-                    assignedExamsMap[currentExam.examId] = {
-                        examId: currentExam.examId,
-                        title: currentExam.examTitle,
-                        subjectId: currentExam.subjectId,
-                        fullStart: currentExam.allPages[0],
-                        fullEnd: currentExam.allPages[currentExam.allPages.length - 1],
-                        unstudiedPages: currentExam.unstudiedPages,
-                        assignedPages: assignedPages,
-                        studiedPagesSet: currentExam.studiedPagesSet,
-                        isFullyCompleted: currentExam.unstudiedPages.length === 0
-                    };
-
-                    currentAllocatedMinutes += requiredTime;
-                    countAssigned++;
-                }
-
-                activeExamIndex++;
-            }
-
-            let statusDisplayHtml = '';
-            if (isExceeded) {
-                statusDisplayHtml = `
-                    <div class="text-emerald-700 font-extrabold text-sm flex items-center gap-1">
-                        <i class="fa-solid fa-trophy text-amber-500"></i> 目標達成！ 🎉 (+${excessMinutes}分 超過)
+                taskListHtml += `
+                    <div class="p-4 bg-slate-50 border ${isCompleted ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200'} rounded-xl flex items-center justify-between transition mb-3">
+                        <div class="flex items-center gap-3 w-full">
+                            <div class="w-full">
+                                <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs px-2 py-0.5 rounded text-white font-medium" style="background-color: ${sub.color}">${sub.name}</span>
+                                        <span class="text-sm font-bold text-slate-800">${exam.title}</span>
+                                        <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">全体範囲: ${fullRangeStr}</span>
+                                    </div>
+                                    ${isCompleted ? '<span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> 完了</span>' : '<span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded font-bold">残り未完了</span>'}
+                                </div>
+                                <div class="text-xs text-slate-500 mt-2 flex items-center gap-3 flex-wrap">
+                                    <span class="bg-amber-50 text-amber-900 px-2.5 py-1 rounded-lg font-bold border border-amber-200">
+                                        📖 残りの取り組み範囲: ${isCompleted ? 'すべて完了！' : displayRangeStr} ${isCompleted ? '' : `(${unstudiedPages.length}ページ残り)`}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
-            } else {
-                statusDisplayHtml = `
-                    <span class="text-indigo-700 font-extrabold text-base">残りあと <span class="text-indigo-900 underline">${remainingBudget}分</span> (目標 ${targetBudget}分)</span>
-                `;
-            }
+            });
+
+            let statusDisplayHtml = isExceeded ? 
+                `<div class="text-emerald-700 font-extrabold text-sm flex items-center gap-1"><i class="fa-solid fa-trophy text-amber-500"></i> 目標達成！ 🎉 (+${excessMinutes}分 超過)</div>` :
+                `<span class="text-indigo-700 font-extrabold text-base">残りあと <span class="text-indigo-900 underline">${remainingBudget}分</span> (本日の目標: ${targetBudget}分)</span>`;
 
             let html = `
                 <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-xl mb-4 flex justify-between items-center flex-wrap gap-2 text-xs">
@@ -1510,42 +1459,9 @@
                         <span class="text-slate-600 block">本日の学習時間: <strong class="text-indigo-600">${todayStudiedMinutes}分</strong></span>
                     </div>
                 </div>
+                <p class="text-xs text-slate-500 mb-3"><i class="fa-solid fa-circle-info mr-1 text-indigo-600"></i>タイマーで進めたページ範囲を記録すると、未完了の残りのページ範囲（例: p.26〜p.27）がここに自動で更新されます。</p>
+                ${taskListHtml}
             `;
-
-            Object.keys(assignedExamsMap).forEach(examId => {
-                const group = assignedExamsMap[examId];
-                const sub = subjects.find(s => s.id === group.subjectId) || { name: '不明', color: '#cbd5e1' };
-                
-                let fullRangeStr = `p.${group.fullStart}〜p.${group.fullEnd}`;
-                let remainingAssignedPages = group.assignedPages.filter(p => !group.studiedPagesSet.has(p));
-                let assignedDisplayStr = formatPageRanges(remainingAssignedPages);
-
-                let isAssignedCompleted = group.assignedPages.length > 0 && remainingAssignedPages.length === 0;
-                let isFullyCompleted = group.isFullyCompleted;
-                let isGreen = isAssignedCompleted || isFullyCompleted;
-
-                html += `
-                    <div class="p-4 bg-slate-50 border ${isGreen ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200'} rounded-xl flex items-center justify-between transition mb-3">
-                        <div class="flex items-center gap-3 w-full">
-                            <div class="w-full">
-                                <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="text-xs px-2 py-0.5 rounded text-white font-medium" style="background-color: ${sub.color}">${sub.name}</span>
-                                        <span class="text-sm font-bold text-slate-800">${group.title}</span>
-                                        <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">全体範囲: ${fullRangeStr}</span>
-                                    </div>
-                                    ${isGreen ? '<span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> ミッション達成！</span>' : '<span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">進行中</span>'}
-                                </div>
-                                <div class="text-xs text-slate-500 mt-2 flex items-center gap-3 flex-wrap">
-                                    <span class="bg-amber-50 text-amber-900 px-2.5 py-1 rounded-lg font-bold border border-amber-200">
-                                        📖 本日の残り範囲: ${isGreen ? 'クリア！' : assignedDisplayStr} ${isGreen ? '' : `(${remainingAssignedPages.length}ページ残り)`}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
 
             container.innerHTML = html;
         }
@@ -1624,10 +1540,10 @@
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="text-xs px-2 py-0.5 rounded bg-amber-600 text-white font-medium">期末モード</span>
-                                    <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">期末専用の作業をすべて行う (目標: ${targetBudget}分)</span>
+                                    <span class="text-sm font-bold ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">期末の課題・ワークを自由に選んで進める (目標: ${targetBudget}分)</span>
                                 </div>
                                 <div class="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
-                                    <span>設定された目標時間の範囲内で期末専用タブのローテーション作業を進めます。</span>
+                                    <span>期末専用タブで残りのページを確認しながら進められます。</span>
                                     ${isCompleted ? '<span class="text-emerald-600 font-bold">✨ 本日のノルマ達成！お疲れ様でした</span>' : ''}
                                 </div>
                             </div>
